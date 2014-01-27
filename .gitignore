@@ -154,3 +154,8 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+/packages
+/Umbraco.RelationEditor.Web/App_Data
+/Umbraco.RelationEditor.Web/install
+/Umbraco.RelationEditor.Web/umbraco
+/Umbraco.RelationEditor.Web/umbraco_client
