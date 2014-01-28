@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Web.Http;
 using System.Web.Http.Controllers;
+using umbraco;
 using Umbraco.Core.Models;
 using Umbraco.Core.Services;
 using Umbraco.Web;
@@ -20,11 +21,39 @@ namespace Umbraco.RelationEditor
     {
         private readonly IRelationService relationService;
         private readonly IContentService contentService;
+        private readonly IMediaService mediaService;
+        private readonly IContentTypeService contentTypeService;
+
+        private readonly Dictionary<UmbracoObjectTypes, UmbracoObjectTypes[]> allowedRelations = new Dictionary<UmbracoObjectTypes, UmbracoObjectTypes[]>
+        {
+            {UmbracoObjectTypes.DocumentType, new[] {UmbracoObjectTypes.DocumentType, UmbracoObjectTypes.MediaType}},
+            {UmbracoObjectTypes.MediaType, new[] {UmbracoObjectTypes.DocumentType, UmbracoObjectTypes.MediaType}},
+            {UmbracoObjectTypes.Document, new[] {UmbracoObjectTypes.Document, UmbracoObjectTypes.Media}},
+            {UmbracoObjectTypes.Media, new[] {UmbracoObjectTypes.Document, UmbracoObjectTypes.Media}},
+        };
+
+        private readonly Dictionary<TreeNodeType, UmbracoObjectTypes> treeNodeObjectTypes = new Dictionary<TreeNodeType, UmbracoObjectTypes>
+        {
+            { new TreeNodeType("content", null), UmbracoObjectTypes.Document },
+            { new TreeNodeType("media", null), UmbracoObjectTypes.Media },
+            { new TreeNodeType("settings", "nodeTypes"), UmbracoObjectTypes.DocumentType },
+            { new TreeNodeType("settings", "mediaTypes"), UmbracoObjectTypes.MediaType }
+        };
+
+        private readonly Dictionary<Guid, TreeNodeType> objectTypeTreeTypes = new Dictionary<Guid, TreeNodeType>
+        {
+            { UmbracoObjectTypes.Document.GetGuid(), new TreeNodeType("content", null) },
+            { UmbracoObjectTypes.Media.GetGuid(), new TreeNodeType("media", null) },
+            { UmbracoObjectTypes.DocumentType.GetGuid(), new TreeNodeType("settings", "nodeTypes") },
+            { UmbracoObjectTypes.MediaType.GetGuid(), new TreeNodeType("settings", "mediaTypes") }
+        };
 
         public RelationsController()
         {
             relationService = ApplicationContext.Services.RelationService;
             contentService = ApplicationContext.Services.ContentService;
+            mediaService = ApplicationContext.Services.MediaService;
+            contentTypeService = ApplicationContext.Services.ContentTypeService;
         }
 
         public string[] GetObjectTypes()
@@ -33,31 +62,27 @@ namespace Umbraco.RelationEditor
         }
 
         public ContentRelationsDto GetRelations(
-            string from,
-            string to,
+            string section,
+            string treeType,
             int parentId
             )
         {
-            UmbracoObjectTypes fromType;
-            UmbracoObjectTypes toType;
+            var treeNodeType = new TreeNodeType(section, treeType);
+            var fromType = UmbracoObjectTypes.Unknown;
 
             if (
-                !Enum.TryParse(from, out fromType) ||
-                !Enum.TryParse(to, out toType) ||
-                fromType == UmbracoObjectTypes.Unknown ||
-                toType == UmbracoObjectTypes.Unknown
+                !treeNodeObjectTypes.TryGetValue(treeNodeType, out fromType)
+                || fromType == UmbracoObjectTypes.Unknown
             )
                 throw new Exception("Cannot get relation types for unknown object type");
 
-            if (fromType != UmbracoObjectTypes.Document || toType != UmbracoObjectTypes.Document)
-                throw new Exception("Haven't implemented anything but document relations yet");
-
             var allRelations = relationService.GetByParentOrChildId(parentId);
             var relationSets = relationService.GetAllRelationTypes()
-                .Where(rt => rt.ParentObjectType == fromType.GetGuid() && rt.ChildObjectType == toType.GetGuid())
+                .Where(rt => rt.ParentObjectType == fromType.GetGuid() && allowedRelations[fromType].Any(ar => ar.GetGuid() == rt.ChildObjectType))
                 .Select(rt => new RelationSetDto
                 {
                     RelationTypeId = rt.Id,
+                    ChildType = objectTypeTreeTypes[rt.ChildObjectType],
                     Alias = rt.Alias,
                     Name = rt.Name,
                     Relations = allRelations
@@ -65,7 +90,7 @@ namespace Umbraco.RelationEditor
                         .Select(r => new RelationDto
                         {
                             ChildId = r.ChildId,
-                            ChildName = contentService.GetById(r.ChildId).Name,
+                            ChildName = GetChildName(rt.ChildObjectType, r.ChildId),
                             State = RelationStateEnum.Unmodified
                         }).ToList()
                 }).ToList();
@@ -100,6 +125,22 @@ namespace Umbraco.RelationEditor
                 }
             }
         }
+
+        private string GetChildName(Guid childObjectType, int childId)
+        {
+            switch (UmbracoObjectTypesExtensions.GetUmbracoObjectType(childObjectType))
+            {
+                case UmbracoObjectTypes.Document:
+                    return contentService.GetById(childId).Name;
+                case UmbracoObjectTypes.Media:
+                    return mediaService.GetById(childId).Name;
+                case UmbracoObjectTypes.DocumentType:
+                    return contentTypeService.GetContentType(childId).Name;
+                case UmbracoObjectTypes.MediaType:
+                    return contentTypeService.GetMediaType(childId).Name;
+            }
+            throw new Exception("Unknown child type");
+        }
     }
 
     public class ContentRelationsDto
@@ -111,6 +152,7 @@ namespace Umbraco.RelationEditor
     public class RelationSetDto
     {
         public int RelationTypeId { get; set; }
+        public TreeNodeType ChildType { get; set; }
         public string Alias { get; set; }
         public string Name { get; set; }
         public IList<RelationDto> Relations { get; set; }

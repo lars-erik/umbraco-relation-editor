@@ -1,5 +1,5 @@
 ﻿(function () {
-    function EditRelationsController($scope, dialogService, relationsResources, assetsService, navigationService) {
+    function EditRelationsController($scope, dialogService, relationsResources, assetsService, navigationService, eventsService) {
         var dialog;
 
         function relationPicked(index, data) {
@@ -34,13 +34,18 @@
         $scope.data = {};
 
         $scope.pickRelation = function (index) {
+            var selected = eventsService.on("dialogs.treePickerController.select", function (evt, args) {
+                relationPicked(index, args.node);
+                args.node.filtered = true;
+                dialogService.close(dialog);
+            });
+
             dialogService.close(dialog);
             dialog = dialogService.treePicker({
-                treeAlias: "content",
-                section: "content",
-                customTreeParams: "test=tast",
-                callback: function (data) {
-                    relationPicked(index, data);
+                treeAlias: $scope.resourceSets[index].ChildType.TreeType,
+                section: $scope.resourceSets[index].ChildType.Section,
+                closeCallback: function () {
+                    selected();
                 }
             });
         };
@@ -64,7 +69,7 @@
 
         assetsService.loadCss(Umbraco.Sys.ServerVariables.umbracoSettings.appPluginsPath + "/RelationEditor/relationeditor.css");
 
-        var promise = relationsResources.getById($scope.currentNode.id);
+        var promise = relationsResources.getById($scope.currentNode.section, $scope.currentNode.nodeType, $scope.currentNode.id);
         promise.then(function (data) {
             $scope.data = data;
             $scope.resourceSets = data.Sets;
@@ -74,13 +79,13 @@
 
     function RelationsResources($q, $http, umbDataFormatter, umbRequestHelper) {
         return {
-            getById: function(id) {
+            getById: function(section, treeType, id) {
                 return umbRequestHelper.resourcePromise(
                     $http.get(
                         Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/getrelations", {
                             params: {
-                                from: "Document",
-                                to: "Document",
+                                section: section,
+                                treeType: treeType || "",
                                 parentId: id
                             }
                         }),
@@ -104,6 +109,7 @@
             "RelationEditor.RelationResources",
             "assetsService",
             "navigationService",
+            "eventsService",
             EditRelationsController]);
 
     /*
