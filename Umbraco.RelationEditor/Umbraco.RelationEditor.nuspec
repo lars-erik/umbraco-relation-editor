@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Umbraco.RelationEditor</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Lars-Erik Aabech</authors>
+    <owners>Lars-Erik Aabech</owners>
+    <projectUrl>http://lars-erik.github.io/umbraco-relation-editor</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes/>
+    <copyright>Copyright 2014 Lars-Erik Aabech / MarkedsPartner AS</copyright>
+    <tags>umbraco relations</tags>
+  </metadata>
+  <files>
+    <file src="..\umbraco.relationeditor.web\app_plugins\relationeditor\*.*" target="content\App_Plugins\RelationEditor"/>
+    <file src="..\umbraco.relationeditor.web\config\relationeditor.sample.config" target="content\config\relationeditor.config"/>
+    <file src="..\readme.txt" target=""/>
+  </files>
+</package>

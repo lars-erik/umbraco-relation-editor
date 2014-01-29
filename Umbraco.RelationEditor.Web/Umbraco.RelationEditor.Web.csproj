@@ -228,6 +228,7 @@
     <Content Include="App_Plugins\RelationEditor\Package.manifest" />
     <Content Include="App_Plugins\RelationEditor\editrelations.html" />
     <Content Include="config\RelationEditor.config" />
+    <Content Include="config\relationeditor.sample.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
