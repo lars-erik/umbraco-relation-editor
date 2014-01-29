@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<umbPackage>
+  <files>
+    <file>
+      <guid>Umbraco.RelationEditor.dll</guid>
+      <orgPath>/bin</orgPath>
+      <orgName>Umbraco.RelationEditor.dll</orgName>
+    </file>
+    <file>
+      <guid>editrelations.html</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>editrelations.html</orgName>
+    </file>
+    <file>
+      <guid>package.manifest</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>package.manifest</orgName>
+    </file>
+    <file>
+      <guid>relationeditor.css</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>relationeditor.css</orgName>
+    </file>
+    <file>
+      <guid>relationeditor.js</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>relationeditor.js</orgName>
+    </file>
+    <file>
+      <guid>relationeditor.sample.config</guid>
+      <orgPath>/config</orgPath>
+      <orgName>relationeditor.config</orgName>
+    </file>
+  </files>
+  <info>
+    <package>
+      <name>Umbraco Relation Editor</name>
+      <version>1.0.5142</version>
+      <license url="http://opensource.org/licenses/MIT">MIT License</license>
+      <url>http://lars-erik.github.io/umbraco-relation-editor/</url>
+      <requirements>
+        <major>7</major>
+        <minor>0</minor>
+        <patch>0</patch>
+      </requirements>
+    </package>
+    <author>
+      <name>Lars-Erik Aabech</name>
+      <website>http://www.markedspartner.no</website>
+    </author>
+    <readme><![CDATA[Umbraco 7 Relation Editor
+
+The editor will appear for supported objects after they're configured in /config/relationeditor.config.
+
+Supported ObjectTypes are
+* Document
+* Media
+* DocumentType
+* MediaType
+
+Supported relation types are
+* Document -&gt; Document
+* Document -&gt; Media
+* Media -&gt; Document
+* Media -&gt; Media
+* DocumentType -&gt; DocumentType
+* DocumentType -&gt; MediaType
+* MediaType -&gt; DocumentType
+* MediaType -&gt; MediaType
+
+See sample configuration in config\relationeditor.config
+]]></readme>
+  </info>
+  <DocumentTypes />
+  <Templates />
+  <Stylesheets />
+  <Macros />
+  <DictionaryItems />
+  <Languages />
+  <DataTypes />
+</umbPackage>
