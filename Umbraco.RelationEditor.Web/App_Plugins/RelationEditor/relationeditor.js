@@ -34,16 +34,44 @@
         $scope.data = {};
 
         $scope.pickRelation = function (index) {
-            var selected = eventsService.on("dialogs.treePickerController.select", function (evt, args) {
-                relationPicked(index, args.node);
-                args.node.filtered = true;
-                dialogService.close(dialog);
-            });
+            var selected;
 
+            function nodePicked(evt, args) {
+                args.node.filtered = true;
+                if (args.node.metaData.relationDisallowed) {
+                    return;
+                }
+                relationPicked(index, args.node);
+                dialogService.close(dialog);
+            }
+
+            function searchSelected(entity) {
+                relationsResources.isAllowedEntity(
+                    $scope.data.ParentType,
+                    $scope.data.ParentAlias,
+                    $scope.resourceSets[index].Alias,
+                    entity.metaData.treeAlias,
+                    entity.id
+                ).then(function(result) {
+                    if (result.IsAllowed) {
+                        relationPicked(index, entity);
+                        dialogService.close(dialog);
+                    }
+                });
+            }
+
+            selected = eventsService.on("dialogs.treePickerController.select", nodePicked);
             dialogService.close(dialog);
             dialog = dialogService.treePicker({
+                customTreeParams: $.param({
+                    relationEditor: true,
+                    parentType: $scope.data.ParentType,
+                    parentTypeAlias: $scope.data.ParentAlias,
+                    relationAlias: $scope.resourceSets[index].Alias
+                }),
                 treeAlias: $scope.resourceSets[index].ChildType.TreeType,
                 section: $scope.resourceSets[index].ChildType.Section,
+                callback: searchSelected,
                 closeCallback: function () {
                     selected();
                 }
@@ -78,11 +106,12 @@
     }
 
     function RelationsResources($q, $http, umbDataFormatter, umbRequestHelper) {
+        var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/";
         return {
             getById: function(section, treeType, id) {
                 return umbRequestHelper.resourcePromise(
                     $http.get(
-                        Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/getrelations", {
+                        root + "getrelations", {
                             params: {
                                 section: section,
                                 treeType: treeType || "",
@@ -94,8 +123,22 @@
             save: function(set) {
                 return umbRequestHelper.resourcePromise(
                     $http.post(
-                        Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/saverelations", set),
+                        root + "saverelations", set),
                     "Failed to save relations for content id " + set.ParentId
+                );
+            },
+            isAllowedEntity: function(parentType, parentAlias, relationAlias, treeAlias, id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(root + "isallowedentity", {
+                        params: {
+                            parentTypeName: parentType,
+                            parentAlias: parentAlias,
+                            relationAlias: relationAlias,
+                            treeAlias: treeAlias,
+                            id: id
+                        }
+                    }),
+                    "Failed to validate entity"
                 );
             }
         };

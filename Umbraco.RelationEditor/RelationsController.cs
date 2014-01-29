@@ -23,30 +23,7 @@ namespace Umbraco.RelationEditor
         private readonly IContentService contentService;
         private readonly IMediaService mediaService;
         private readonly IContentTypeService contentTypeService;
-
-        private readonly Dictionary<UmbracoObjectTypes, UmbracoObjectTypes[]> allowedRelations = new Dictionary<UmbracoObjectTypes, UmbracoObjectTypes[]>
-        {
-            {UmbracoObjectTypes.DocumentType, new[] {UmbracoObjectTypes.DocumentType, UmbracoObjectTypes.MediaType}},
-            {UmbracoObjectTypes.MediaType, new[] {UmbracoObjectTypes.DocumentType, UmbracoObjectTypes.MediaType}},
-            {UmbracoObjectTypes.Document, new[] {UmbracoObjectTypes.Document, UmbracoObjectTypes.Media}},
-            {UmbracoObjectTypes.Media, new[] {UmbracoObjectTypes.Document, UmbracoObjectTypes.Media}},
-        };
-
-        private readonly Dictionary<TreeNodeType, UmbracoObjectTypes> treeNodeObjectTypes = new Dictionary<TreeNodeType, UmbracoObjectTypes>
-        {
-            { new TreeNodeType("content", null), UmbracoObjectTypes.Document },
-            { new TreeNodeType("media", null), UmbracoObjectTypes.Media },
-            { new TreeNodeType("settings", "nodeTypes"), UmbracoObjectTypes.DocumentType },
-            { new TreeNodeType("settings", "mediaTypes"), UmbracoObjectTypes.MediaType }
-        };
-
-        private readonly Dictionary<Guid, TreeNodeType> objectTypeTreeTypes = new Dictionary<Guid, TreeNodeType>
-        {
-            { UmbracoObjectTypes.Document.GetGuid(), new TreeNodeType("content", null) },
-            { UmbracoObjectTypes.Media.GetGuid(), new TreeNodeType("media", null) },
-            { UmbracoObjectTypes.DocumentType.GetGuid(), new TreeNodeType("settings", "nodeTypes") },
-            { UmbracoObjectTypes.MediaType.GetGuid(), new TreeNodeType("settings", "mediaTypes") }
-        };
+        private readonly IEntityService entityService;
 
         public RelationsController()
         {
@@ -54,6 +31,7 @@ namespace Umbraco.RelationEditor
             contentService = ApplicationContext.Services.ContentService;
             mediaService = ApplicationContext.Services.MediaService;
             contentTypeService = ApplicationContext.Services.ContentTypeService;
+            entityService = ApplicationContext.Services.EntityService;
         }
 
         public string[] GetObjectTypes()
@@ -61,6 +39,7 @@ namespace Umbraco.RelationEditor
             return Enum.GetNames(typeof (UmbracoObjectTypes));
         }
 
+        [HttpGet]
         public ContentRelationsDto GetRelations(
             string section,
             string treeType,
@@ -71,33 +50,65 @@ namespace Umbraco.RelationEditor
             var fromType = UmbracoObjectTypes.Unknown;
 
             if (
-                !treeNodeObjectTypes.TryGetValue(treeNodeType, out fromType)
+                !Mappings.TreeNodeObjectTypes.TryGetValue(treeNodeType, out fromType)
                 || fromType == UmbracoObjectTypes.Unknown
             )
                 throw new Exception("Cannot get relation types for unknown object type");
 
+            var entity = entityService.Get(parentId, fromType);
+            object alias = null;
+            entity.AdditionalData.TryGetValue("Alias", out alias);
+            var typeConfig = RelationEditor.Configuration.Get(fromType, alias as string);
+
             var allRelations = relationService.GetByParentOrChildId(parentId);
+            var allowedObjectTypes = Mappings.AllowedRelations[fromType];
+            var enabledRelations = typeConfig.EnabledRelations.Select(r => r.Alias).ToArray();
             var relationSets = relationService.GetAllRelationTypes()
-                .Where(rt => rt.ParentObjectType == fromType.GetGuid() && allowedRelations[fromType].Any(ar => ar.GetGuid() == rt.ChildObjectType))
+                .Where(rt => 
+                    rt.ParentObjectType == fromType.GetGuid() && 
+                        enabledRelations.Contains(rt.Alias) &&
+                        allowedObjectTypes.Any(ar => ar.GetGuid() == rt.ChildObjectType)
+                )
                 .Select(rt => new RelationSetDto
                 {
                     RelationTypeId = rt.Id,
-                    ChildType = objectTypeTreeTypes[rt.ChildObjectType],
+                    Direction = rt.IsBidirectional ? "bidirectional" : "parentchild",
+                    ChildType = Mappings.ObjectTypeTreeTypes[rt.ChildObjectType],
                     Alias = rt.Alias,
                     Name = rt.Name,
                     Relations = allRelations
-                        .Where(r => r.RelationTypeId == rt.Id)
-                        .Select(r => new RelationDto
+                        .Where(r => 
+                            r.RelationTypeId == rt.Id &&
+                            (rt.IsBidirectional || r.ParentId == parentId)
+                        )
+                        .Select(r =>
                         {
-                            ChildId = r.ChildId,
-                            ChildName = GetChildName(rt.ChildObjectType, r.ChildId),
-                            State = RelationStateEnum.Unmodified
+                            int otherId;
+                            string otherName;
+                            if (r.ParentId == parentId)
+                            {
+                                otherId = r.ChildId;
+                                otherName = GetChildName(rt.ChildObjectType, r.ChildId);
+                            }
+                            else
+                            {
+                                otherId = r.ParentId;
+                                otherName = GetChildName(rt.ParentObjectType, r.ParentId);
+                            }
+                            return new RelationDto
+                            {
+                                ChildId = otherId,
+                                ChildName = otherName,
+                                State = RelationStateEnum.Unmodified
+                            };
                         }).ToList()
                 }).ToList();
 
             return new ContentRelationsDto
             {
                 ParentId = parentId,
+                ParentType = fromType,
+                ParentAlias = alias as string,
                 Sets = relationSets
             };
         }
@@ -107,7 +118,10 @@ namespace Umbraco.RelationEditor
         {
             if (contentRelations.Sets == null || !contentRelations.Sets.Any())
                 return;
+            
             var relations = relationService.GetByParentId(contentRelations.ParentId).ToList();
+            var parentEntity = entityService.Get(contentRelations.ParentId, contentRelations.ParentType);
+            
             foreach (var set in contentRelations.Sets)
             {
                 var typeId = set.RelationTypeId;
@@ -121,9 +135,28 @@ namespace Umbraco.RelationEditor
                     if (relation.State == RelationStateEnum.Deleted)
                         continue;
 
-                    relationService.Save(new Relation(contentRelations.ParentId, relation.ChildId, type));
+                    var childEntity = entityService.Get(relation.ChildId, UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
+                    relationService.Relate(parentEntity, childEntity, type);
                 }
             }
+        }
+
+        [HttpGet]
+        public IsAllowedResult IsAllowedEntity(string parentTypeName, string parentAlias, string relationAlias, string treeAlias, int id)
+        {
+            var parentType = (UmbracoObjectTypes)Enum.Parse(typeof(UmbracoObjectTypes), parentTypeName);
+            var config = RelationEditor.Configuration.Get(parentType, parentAlias);
+            var relConfig = config.Get(relationAlias);
+            if (relConfig.Enabled && !relConfig.EnabledChildTypes.Any())
+                return new IsAllowedResult(true);
+            var treeNodeType = new TreeNodeType(treeAlias, null);
+            if (Mappings.TreeNodeTypes.Contains(treeNodeType))
+            {
+                var objectType = Mappings.TreeNodeObjectTypes[treeNodeType];
+                var alias = EntityHelper.FindAlias(objectType, id);
+                return new IsAllowedResult(relConfig.Get(alias).Enabled);
+            }
+            return new IsAllowedResult(false);
         }
 
         private string GetChildName(Guid childObjectType, int childId)
@@ -143,9 +176,21 @@ namespace Umbraco.RelationEditor
         }
     }
 
+    public class IsAllowedResult
+    {
+        public bool IsAllowed { get; set; }
+
+        public IsAllowedResult(bool isAllowed)
+        {
+            IsAllowed = isAllowed;
+        }
+    }
+
     public class ContentRelationsDto
     {
         public int ParentId { get; set; }
+        public UmbracoObjectTypes ParentType { get; set; }
+        public string ParentAlias { get; set; }
         public IList<RelationSetDto> Sets { get; set; }         
     }
 
@@ -156,6 +201,7 @@ namespace Umbraco.RelationEditor
         public string Alias { get; set; }
         public string Name { get; set; }
         public IList<RelationDto> Relations { get; set; }
+        public string Direction { get; set; }
     }
 
     public class RelationDto

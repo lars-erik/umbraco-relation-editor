@@ -2,29 +2,31 @@
     <div class="umb-dialog-body">
         <div class="umb-pane">
             <p class="abstract" ng-hide="success">
-                Assign related content to {{currentNode.name}} below.
+                Assign related items to {{currentNode.name}}.
             </p>
             
             <div class="sortableFrame" ng-repeat="resourceSet in resourceSets">
                 <h4>{{resourceSet.Name}}</h4>
-                <table class="sortableNodes">
+                <table class="sortableNodes" ng-class="resourceSet.Direction">
                     <thead>
                         <tr>
+                            <th style="width:5%">&nbsp;</th>
                             <th style="width:15%;">ID</th>
-                            <th style="width:75%;">Name</th>
+                            <th style="width:70%;">Name</th>
                             <th style="width:10%">&nbsp;</th>
                         </tr>
                     </thead>
                     <tbody reledit-sortable="{containment:'parent'}" ng-model="resourceSet.Relations">
                         <tr ng-repeat="relation in resourceSet.Relations" ng-show="isActive(relation)">
+                            <td style="width:5%;" class="direction"></td>
                             <td style="width:15%;">{{relation.ChildId}}</td>
-                            <td style="width:75%;">{{relation.ChildName}}</td>
+                            <td style="width:70%;">{{relation.ChildName}}</td>
                             <td style="width:10%;"><button class="btn btn-danger" ng-click="remove(relation)">Remove</button></td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2">
+                            <td colspan="4">
                                 <button class="btn btn-primary" ng-click="pickRelation($index)">Add</button>
                             </td>
                         </tr>
