@@ -12,7 +12,7 @@ using Umbraco.Web.Trees;
 
 namespace Umbraco.RelationEditor
 {
-    public class Startup : ApplicationEventHandler
+    public class RelationEditorEvents : ApplicationEventHandler
     {
         protected override void ApplicationStarted(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
