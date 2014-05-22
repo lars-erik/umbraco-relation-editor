@@ -187,6 +187,7 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="EditRelationsAction.cs" />
     <Compile Include="EntityHelper.cs" />
+    <Compile Include="Extensions\PublishedContentExtensions.cs" />
     <Compile Include="Mappings.cs" />
     <Compile Include="RelationsController.cs" />
     <Compile Include="RelationEditorEvents.cs" />

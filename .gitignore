@@ -159,3 +159,5 @@ $RECYCLE.BIN/
 /Umbraco.RelationEditor.Web/install
 /Umbraco.RelationEditor.Web/umbraco
 /Umbraco.RelationEditor.Web/umbraco_client
+/Umbraco.RelationEditor.Web/media/created-packages
+*.nupkg
