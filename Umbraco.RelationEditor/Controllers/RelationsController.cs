@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
 using System.Web.Http;
 using System.Web.Http.Controllers;
-using umbraco;
 using Umbraco.Core.Models;
 using Umbraco.Core.Services;
 using Umbraco.Web;
 using Umbraco.Web.Mvc;
 using Umbraco.Web.WebApi;
 
-namespace Umbraco.RelationEditor
+namespace Umbraco.RelationEditor.Controllers
 {
     [UmbracoApplicationAuthorize("content")]
     [PluginController("RelationsEditor")]

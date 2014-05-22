@@ -185,11 +185,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="EditRelationsAction.cs" />
     <Compile Include="EntityHelper.cs" />
     <Compile Include="Extensions\PublishedContentExtensions.cs" />
     <Compile Include="Mappings.cs" />
-    <Compile Include="RelationsController.cs" />
+    <Compile Include="Controllers\RelationsController.cs" />
     <Compile Include="RelationEditorEvents.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TreeNodeType.cs" />

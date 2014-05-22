@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 
@@ -12,9 +13,11 @@ namespace Umbraco.RelationEditor
     public class EntityConfiguration
     {
         [XmlAttribute]
+        [JsonProperty(Order = 2)]
         public string Alias { get; set; }
 
         [XmlIgnore]
+        [JsonIgnore]
         public virtual bool Enabled
         {
             get { return Alias != null; }
@@ -43,10 +46,10 @@ namespace Umbraco.RelationEditor
     public class ObjectTypeConfiguration : EntityConfiguration
     {
         [XmlAttribute]
+        [JsonProperty(Order = 1)]
         public UmbracoObjectTypes Name { get; set; }
-        [XmlAttribute]
-        public bool AllowInheritance { get; set; }
         [XmlElement("EnabledRelation")]
+        [JsonProperty(Order = 3)]
         public List<EnabledRelationConfiguration> EnabledRelations { get; set; }
 
         public EnabledRelationConfiguration Get(string alias)
@@ -70,6 +73,7 @@ namespace Umbraco.RelationEditor
     public class EnabledRelationConfiguration : EntityConfiguration
     {
         [XmlElement("EnabledChildType")]
+        [JsonProperty(Order = 3)]
         public List<EnabledChildTypeConfiguration> EnabledChildTypes { get; set; }
 
         public EnabledChildTypeConfiguration Get(string alias)
