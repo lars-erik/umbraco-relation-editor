@@ -1,4 +1,9 @@
 ﻿(function () {
+    var ObjectTypes = {
+        Document: "C66BA18E-EAF3-4CFF-8A22-41B16D66A972",
+        Media: "B796F64C-1F99-4FFB-B886-4BF4BC011A9C"
+    };
+
     function EditRelationsController($scope, dialogService, relationsResources, assetsService, navigationService, eventsService) {
         var dialog;
 
@@ -105,8 +110,145 @@
         });
     }
 
+    function EnableRelationsController(scope, relationsResources, assetsService, navigationService) {
+        var type = scope.currentNode.nodeType,
+            id = scope.currentNode.id,
+            promise = null;
+
+        function find(array, predicate) {
+            var result = $.grep(array, predicate);
+            return result.length === 1 ? result[0] : null;
+        }
+
+        function findChildTypes(relationType) {
+            if (relationType.ChildObjectType.toUpperCase() === ObjectTypes.Document) {
+                return scope.data.contentTypes;
+            }
+            if (relationType.ChildObjectType.toUpperCase() === ObjectTypes.Media) {
+                return scope.data.mediaTypes;
+            }
+            return [];
+        }
+
+        function hierarchize(types, configuredType, parentId) {
+            return $.map(
+                $.grep(types, function(t) { return t.ParentId == parentId; }),
+                function (t) {
+                    return {
+                        id: t.Id,
+                        name: t.Name,
+                        checked: find(configuredType.EnabledChildTypes, function(ect) {
+                            return ect.Alias === t.Alias;
+                        }) != null,
+                        items: hierarchize(types, configuredType, t.Id)
+                    }
+                });
+        }
+
+        function enabledChangedHandler(relationType) {
+            return function (newValue) {
+                var configuredType = find(scope.data.configuration.EnabledRelations, function (er) { return er.Alias === relationType.Alias; }),
+                    index;
+                if (configuredType === null && newValue) {
+                    configuredType = {
+                        Alias: relationType.Alias,
+                        EnabledChildTypes: []
+                    };
+                    relationType.childTypes = {
+                        items: hierarchize(
+                            findChildTypes(relationType),
+                            configuredType,
+                            -1
+                        )
+                    };
+                    scope.data.configuration.EnabledRelations.push(configuredType);
+                } else if (configuredType !== null && newValue === false) {
+                    index = scope.data.configuration.EnabledRelations.indexOf(configuredType);
+                    scope.data.configuration.EnabledRelations.splice(index, 1);
+                    relationType.childTypes.items = [];
+                }
+            }
+        }
+
+        function updateJson() {
+            scope.json = JSON.stringify(scope.data.configuration, null, "\t");
+        }
+
+        scope.isEnabled = function(relationType, index) {
+            return relationType.Enabled;
+        }
+
+        scope.childrenChanged = function (relationType, result) {
+            var configuredType = find(scope.data.configuration.EnabledRelations, function(er) { return er.Alias === relationType.Alias; }),
+                childTypes = findChildTypes(relationType);
+
+            configuredType.EnabledChildTypes = $.map(
+                $.grep(childTypes, function(ct) {
+                    return result[ct.Id];
+                }),
+                function(ct) {
+                    return {
+                        Alias: ct.Alias
+                    };
+                }
+            );
+
+            updateJson();
+        }
+
+        scope.save = function () {
+            scope.ready = false;
+            relationsResources.saveConfiguration(type, id, scope.data.configuration)
+                .then(function() {
+                    navigationService.hideDialog();
+                });
+        }
+
+        scope.data = {configuration: {}};
+        scope.type = {};
+        scope.ready = false;
+        scope.json = "";
+
+        assetsService.loadCss(Umbraco.Sys.ServerVariables.umbracoSettings.appPluginsPath + "/RelationEditor/relationeditor.css");
+
+        promise = relationsResources.configuration(type, id);
+        promise.then(function(data) {
+            scope.data = data;
+
+            angular.forEach(data.relationTypes, function(rt) {
+
+                var configuredType = find(data.configuration.EnabledRelations, function (er) { return er.Alias == rt.Alias; }),
+                    childTypes = findChildTypes(rt);
+                rt.isContent = childTypes.length > 0;
+                rt.Enabled = false;
+
+                if (configuredType != null) {
+                    rt.Enabled = true;
+                    configuredType.EnabledChildTypes = configuredType.EnabledChildTypes || [];
+                } else {
+                    configuredType = { EnabledChildTypes: [] };
+                };
+
+                rt.childTypes = {
+                    items: hierarchize(
+                        childTypes,
+                        configuredType,
+                        -1
+                    )
+                };
+
+                scope.$watch(function() { return rt.Enabled; }, enabledChangedHandler(rt));
+            });
+
+            scope.$watchCollection("data.configuration.EnabledRelations", updateJson);
+
+            scope.ready = true;
+        });
+    }
+
     function RelationsResources($q, $http, umbDataFormatter, umbRequestHelper) {
-        var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/";
+        var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/",
+            enableRoot = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/settings/";
         return {
             getById: function(section, treeType, id) {
                 return umbRequestHelper.resourcePromise(
@@ -140,6 +282,26 @@
                     }),
                     "Failed to validate entity"
                 );
+            },
+            configuration: function(type, id) {
+                return umbRequestHelper.resourcePromise(
+                    $http.get(enableRoot + "getconfiguration", {
+                        params: {
+                            type: type,
+                            id: id
+                        }
+                    }),
+                    "Failed to retrieve configuration"
+                );
+            },
+            saveConfiguration: function(type, id, configuration) {
+                return umbRequestHelper.resourcePromise(
+                    $http.post(
+                        enableRoot + "saveconfiguration",
+                        {id:id,type:type,configuration:configuration}
+                    ),
+                    "Failed to save configuration"
+                );
             }
         };
     }
@@ -153,7 +315,14 @@
             "assetsService",
             "navigationService",
             "eventsService",
-            EditRelationsController]);
+            EditRelationsController])
+        .controller("RelationEditor.EnableRelationsController", [
+            "$scope",
+            "RelationEditor.RelationResources",
+            "assetsService",
+            "navigationService",
+            EnableRelationsController
+        ]);
 
     /*
      jQuery UI Sortable plugin wrapper
@@ -304,7 +473,169 @@
                     }
                 };
             }
-      ]);
+      ])
+
+     /**
+     * Bastardized version of
+     * https://github.com/pbosin/ng_tree_btn
+     *
+     * @ngdoc directive
+     * @name ngTreeBtn
+     *
+     * @description
+     * The 'ngTreeBtn' directive instantiates a template with the multi-select drop-down.
+     * Drop-down is marked up as a Bootstrap button with a caret.
+     * Checked state of options is kept in local object checkMarks
+     *
+     * @element - any
+     * @param ng-tree-btn - data object with dropdown options tree;
+     *     each leaf of the tree is selectable and has to have an "id" property.
+     * @param label - the text on the button
+     * @param btnCls - additional style class(es) for the button
+     * @param callback - function which takes selection results as object with
+     *     property names as tree leaves' ids and values as boolean "checked" status
+     *     example of result argument passed to callback: {"123":true,"763":false,"2":true}
+     * @param enabled - function used to determine enabled/disabled state
+     *
+     * @author pbosin
+     */
+    .directive('ngTreeBtn', function () {
+        return {
+            scope: {
+                options: '=ngTreeBtn',
+                handleRes: '&callback',
+                label: '@',
+                isEnabled: '&'
+            },
+            controller: function ($scope, $attrs) {
+
+
+                $scope.btnCls = $attrs.btncls;
+
+
+                $scope.hasChildren = function (item) {
+                    return (typeof (item.items) !== "undefined" && item.items.length > 0);
+                };
+
+
+                $scope.toggleDrop = function () {
+                    if ($scope.isEnabled()) {
+                        $scope.opened = !$scope.opened;
+                    }
+                };
+
+
+                function isChecked(obj) {
+                    var i;
+                    if (!obj || typeof (obj) === "undefined") {
+                        return false;
+                    }
+                    if (typeof (obj.items) === "undefined" || obj.items.length == 0) {
+                        //tree leaf
+                        return typeof (obj.id) !== "undefined" && checkMarks[obj.id];
+                    } else {
+                        ////traverse children
+                        //for (i in obj.items) {
+                        //    if (!isChecked(obj.items[i])) {
+                        //        return false;
+                        //    }
+                        //}
+                        //return true;
+                        return checkMarks[obj.id];
+                    }
+                }
+
+                $scope.checked = function (item) {
+                    return isChecked(item);
+                };
+
+                $scope.uncheckAll = function(parent) {
+                    var key;
+                    for (key in parent.items) {
+                        setItemCheck(parent.items[key], false);
+                        $scope.uncheckAll(parent.items[key]);
+                    }
+                }
+
+                $scope.allChecked = function(parent) {
+                    var key,
+                        result = true;
+                    for (key in parent.items) {
+                        if (isChecked(parent.items[key])) {
+                            result = false;
+                        }
+                        if (result) {
+                            result = $scope.allChecked(parent.items[key]);
+                        }
+                    }
+                    return result;
+                }
+
+                function setItemCheck(obj, newState) {
+                    var i;
+                    //if ($scope.hasChildren(obj)) {
+                    //    for (i in obj.items) {
+                    //        setItemCheck(obj.items[i], newState);
+                    //    }
+                    //} else {
+                        checkMarks[obj.id] = newState;
+                    //}
+                }
+
+                $scope.selectItem = function (obj) {
+                    var newState = !isChecked(obj);
+                    setItemCheck(obj, newState);
+                    return false;
+                };
+
+
+                function saveResult(obj, result) {
+                    var i;
+                    if ($scope.hasChildren(obj)) {
+                        for (i in obj.items) {
+                            saveResult(obj.items[i], result);
+                        }
+                    }
+                    if (obj.id) {
+                        result["" + obj.id] = checkMarks[obj.id];
+                    }
+                }
+
+                $scope.confirmMulti = function () {
+                    var result = {};
+                    saveResult($scope.options, result);
+                    $scope.toggleDrop();
+                    $scope.handleRes({ res: result });
+                };
+
+
+                function addChk(chks, item) {
+                    var i;
+                    if (typeof (item) !== "undefined" && $scope.hasChildren(item)) {
+                        for (i in item.items) {
+                            addChk(chks, item.items[i]);
+                        }
+                    }
+                    chks[item.id] = (typeof (item.checked) !== "undefined" && item.checked);
+                }
+                function initChks(items) {
+                    var chks = {}, i;
+                    if (typeof (items) !== "undefined") {
+                        for (i in items) {
+                            addChk(chks, items[i]);
+                        }
+                    }
+                    return chks;
+                }
+
+                var checkMarks = [];
+
+                $scope.$watchCollection("options.items", function() { checkMarks = initChks($scope.options.items); });
+
+            },
+            templateUrl: Umbraco.Sys.ServerVariables.umbracoSettings.appPluginsPath + "/RelationEditor/ng-tree-btn.html"
+        }
+    });
 
 
 }());

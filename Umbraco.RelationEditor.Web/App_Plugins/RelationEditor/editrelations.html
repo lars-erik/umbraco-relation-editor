@@ -17,7 +17,7 @@
                         </tr>
                     </thead>
                     <tbody reledit-sortable="{containment:'parent'}" ng-model="resourceSet.Relations">
-                        <tr ng-repeat="relation in resourceSet.Relations" ng-show="isActive(relation)">
+                        <tr ng-repeat="relation in resourceSet.Relations" ng-show="isActive(relation)" ng-class="relation.Deleted ? 'deleted' : ''">
                             <td style="width:5%;" class="direction"></td>
                             <td style="width:15%;">{{relation.ChildId}}</td>
                             <td style="width:70%;">{{relation.ChildName}}</td>

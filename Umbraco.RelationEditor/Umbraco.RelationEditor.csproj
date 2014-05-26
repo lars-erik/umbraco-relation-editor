@@ -185,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Controllers\SaveConfigurationCommand.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="EditRelationsAction.cs" />
     <Compile Include="EntityHelper.cs" />

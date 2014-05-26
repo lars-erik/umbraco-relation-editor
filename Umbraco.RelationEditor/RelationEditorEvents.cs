@@ -72,16 +72,32 @@ namespace Umbraco.RelationEditor
                 var type = Mappings.TreeNodeObjectTypes[treeNodeType];
                 var id = Convert.ToInt32(eventArgs.NodeId);
                 var alias = EntityHelper.FindAlias(type, id);
-                var typeConfig = Configuration.Get(type, alias);
-                if (!typeConfig.Enabled || !typeConfig.EnabledRelations.Any())
-                    return;
-                
-                var menuItem = eventArgs.Menu.Items.Add<EditRelationsAction>("Edit relations");
-                menuItem.LaunchDialogView(
-                    urlHelper.Content("~/App_Plugins/RelationEditor/editrelations.html"),
-                    "Edit relations"
-                );
+
+                AddEditRelations(eventArgs, type, alias, urlHelper);
+                AddEnableRelations(eventArgs, objectType, urlHelper);
             }
+        }
+
+        private static void AddEnableRelations(MenuRenderingEventArgs eventArgs, UmbracoObjectTypes objectType, UrlHelper urlHelper)
+        {
+            if (objectType == UmbracoObjectTypes.DocumentType || objectType == UmbracoObjectTypes.MediaType)
+            {
+                var menuItem = eventArgs.Menu.Items.Add<EnableRelationsAction>("Enable relations");
+                menuItem.LaunchDialogView(urlHelper.Content("~/App_Plugins/RelationEditor/enablerelations.html"), "Enable relations");
+            }
+        }
+
+        private static void AddEditRelations(MenuRenderingEventArgs eventArgs, UmbracoObjectTypes type, string alias, UrlHelper urlHelper)
+        {
+            var typeConfig = Configuration.Get(type, alias);
+            if (!typeConfig.Enabled || !typeConfig.EnabledRelations.Any())
+                return;
+
+            var menuItem = eventArgs.Menu.Items.Add<EditRelationsAction>("Edit relations");
+            menuItem.LaunchDialogView(
+                urlHelper.Content("~/App_Plugins/RelationEditor/editrelations.html"),
+                "Edit relations"
+                );
         }
     }
 }

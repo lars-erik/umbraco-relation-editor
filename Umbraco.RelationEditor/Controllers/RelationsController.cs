@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using Umbraco.Core.Models;
+using Umbraco.Core.Models.EntityBase;
 using Umbraco.Core.Services;
 using Umbraco.Web;
 using Umbraco.Web.Mvc;
@@ -77,27 +78,8 @@ namespace Umbraco.RelationEditor.Controllers
                             r.RelationTypeId == rt.Id &&
                             (rt.IsBidirectional || r.ParentId == parentId)
                         )
-                        .Select(r =>
-                        {
-                            int otherId;
-                            string otherName;
-                            if (r.ParentId == parentId)
-                            {
-                                otherId = r.ChildId;
-                                otherName = GetChildName(rt.ChildObjectType, r.ChildId);
-                            }
-                            else
-                            {
-                                otherId = r.ParentId;
-                                otherName = GetChildName(rt.ParentObjectType, r.ParentId);
-                            }
-                            return new RelationDto
-                            {
-                                ChildId = otherId,
-                                ChildName = otherName,
-                                State = RelationStateEnum.Unmodified
-                            };
-                        }).ToList()
+                        .Select(r => GetChild(r, parentId))
+                        .ToList()
                 }).ToList();
 
             return new ContentRelationsDto
@@ -155,18 +137,36 @@ namespace Umbraco.RelationEditor.Controllers
             return new IsAllowedResult(false);
         }
 
-        private string GetChildName(Guid childObjectType, int childId)
+        private RelationDto GetChild(IRelation relation, int parentId)
+        {
+            return relation.ParentId == parentId ?
+                GetChild(relation.RelationType.ChildObjectType, relation.ChildId) :
+                GetChild(relation.RelationType.ParentObjectType, relation.ParentId);
+        }
+
+        private RelationDto GetChild(Guid childObjectType, int childId)
+        {
+            var entity = GetEntity(childObjectType, childId);
+            return new RelationDto
+            {
+                ChildId = childId,
+                ChildName = entity == null ? "<deleted>" : entity.Name,
+                Deleted = entity == null || entity.Path.Contains("-20")
+            };
+        }
+
+        private IUmbracoEntity GetEntity(Guid childObjectType, int childId)
         {
             switch (UmbracoObjectTypesExtensions.GetUmbracoObjectType(childObjectType))
             {
                 case UmbracoObjectTypes.Document:
-                    return contentService.GetById(childId).Name;
+                    return contentService.GetById(childId);
                 case UmbracoObjectTypes.Media:
-                    return mediaService.GetById(childId).Name;
+                    return mediaService.GetById(childId);
                 case UmbracoObjectTypes.DocumentType:
-                    return contentTypeService.GetContentType(childId).Name;
+                    return contentTypeService.GetContentType(childId);
                 case UmbracoObjectTypes.MediaType:
-                    return contentTypeService.GetMediaType(childId).Name;
+                    return contentTypeService.GetMediaType(childId);
             }
             throw new Exception("Unknown child type");
         }
@@ -205,6 +205,12 @@ namespace Umbraco.RelationEditor.Controllers
         public int ChildId { get; set; }
         public string ChildName { get; set; }
         public RelationStateEnum State { get; set; }
+        public bool Deleted { get; set; }
+
+        public RelationDto()
+        {
+            State = RelationStateEnum.Unmodified;
+        }
     }
 
     public enum RelationStateEnum

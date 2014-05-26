@@ -55,3 +55,32 @@
 {
     white-space: nowrap;
 }
+
+.deleted {
+    color: gray;
+}
+
+.ngtree .block {
+  display: block;
+}
+.ngtree.centered {
+  text-align:center;
+}
+.ngtree ul.menu {
+  margin-left:15px
+}
+.ngtree .menu li {
+  list-style-type:none;
+}
+.ngtree .dropdown-menu li > a.multicheck {
+  padding: 3px 10px
+}
+.ngtree .saveMultiAll {
+  margin: 2px auto;
+  width: 90%;
+}
+.enableRelations .dropdown-menu {
+    display: block;
+    left: auto;
+    right: 0px;
+}

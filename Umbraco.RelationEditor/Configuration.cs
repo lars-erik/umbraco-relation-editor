@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using umbraco.controls;
 using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
 
@@ -33,7 +34,7 @@ namespace Umbraco.RelationEditor
         public ObjectTypeConfiguration Get(UmbracoObjectTypes objectType, string alias)
         {
             return ObjectTypes
-                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias) 
+                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
                 ?? new ObjectTypeConfiguration();
         }
 
@@ -95,40 +96,88 @@ namespace Umbraco.RelationEditor
 
     public class Configuration
     {
+        private static readonly object LockObj = new object();
         private static RelationEditorConfiguration configuration = null;
 
         private static IEnumerable<ObjectTypeConfiguration> ObjectTypes
         {
             get
             {
+                return Instance.ObjectTypes;
+            }
+        }
+
+        public static RelationEditorConfiguration Instance
+        {
+            get
+            {
                 EnsureConfiguration();
-                return configuration.ObjectTypes;
+                return configuration;
             }
         }
 
         public static ObjectTypeConfiguration Get(UmbracoObjectTypes objectType, string alias)
         {
-            return ObjectTypes
-                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
-                ?? new ObjectTypeConfiguration();
+            lock (LockObj)
+            {
+                return ObjectTypes
+                    .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
+                    ?? new ObjectTypeConfiguration();
+            }
+        }
+
+        public static void Set(UmbracoObjectTypes objectType, string alias, ObjectTypeConfiguration typeConfiguration)
+        {
+            lock (LockObj)
+            {
+                var existing = ObjectTypes.FirstOrDefault(t => t.Name == objectType && t.Alias == alias);
+                if (existing != null)
+                    configuration.ObjectTypes.Remove(existing);
+                if (typeConfiguration.EnabledRelations.Any())
+                { 
+                    typeConfiguration.Alias = alias;
+                    typeConfiguration.Name = objectType;
+                    configuration.ObjectTypes.Add(typeConfiguration);
+                }
+                Save();
+            }
+        }
+
+        private static void Save()
+        {
+            try
+            {
+                var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
+                using (var writer = new StreamWriter(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
+                {
+                    serializer.Serialize(writer, configuration);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error<Configuration>("Could not write config/RelationEditor.config", ex);
+            }
         }
 
         private static void EnsureConfiguration()
         {
-            if (configuration == null)
+            lock (LockObj)
             {
-                try
+                if (configuration == null)
                 {
-                    var serializer = new XmlSerializer(typeof (RelationEditorConfiguration));
-                    using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
-                    { 
-                        configuration = (RelationEditorConfiguration) serializer.Deserialize(reader);
+                    try
+                    {
+                        var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
+                        using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
+                        {
+                            configuration = (RelationEditorConfiguration)serializer.Deserialize(reader);
+                        }
                     }
-                }
-                catch(Exception ex)
-                {
-                    LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
-                    configuration = new RelationEditorConfiguration();
+                    catch (Exception ex)
+                    {
+                        LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
+                        configuration = new RelationEditorConfiguration();
+                    }
                 }
             }
         }
