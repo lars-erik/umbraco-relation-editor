@@ -1,0 +1,54 @@
+﻿<!-- Multi select with tree and Confirm btn -->
+<div class="btn-group">
+    <button class="btn {{btnCls}} dropdown-toggle" ng-class="{disabled: !isEnabled()}"
+            ng-click="toggleDrop()">
+        {{label}} <b class="caret"></b>
+    </button>
+    <ul class="dropdown-menu block ngtree" ng-show="opened">
+        <li>
+            <a class="multiAll" href="javascript:void(null)" ng-click="uncheckAll(options)">
+                All
+                <i class="icon icon-check" ng-show="allChecked(options)"></i>
+            </a>
+            <ul class="menu">
+                <li ng-repeat="item in options.items">
+                    <a ng-show="!hasChildren(item)"
+                       class="multicheck" href="javascript:void(null)" ng-click="selectItem(item)">
+                        {{item.name}}
+                        <i class="icon icon-check" ng-show="checked(item)"></i>
+                    </a>
+                    <a ng-show="hasChildren(item)" class="multiAll" href="javascript:void(null)"
+                       ng-click="selectItem(item)">
+                        {{item.name}}
+                        <i class="icon icon-check" ng-show="checked(item)"></i>
+                    </a>
+                    <ul ng-show="hasChildren(item)" class="menu">
+                        <li ng-include="'itemTemplate'">
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li class="centered">
+            <button class="btn btn-mini btn-info saveMultiAll" ng-click="confirmMulti($event)">Confirm</button>
+        </li>
+        <div class="clearfix"></div>
+    </ul>
+</div>
+
+<script type="text/ng-template" id="itemTemplate">
+    <li ng-repeat="item in item.items">
+        <a ng-show="!hasChildren(item)"
+           class="multicheck" href="javascript:void(null)" ng-click="selectItem(item)">
+            {{item.name}}
+            <i class="icon icon-check" ng-show="checked(item)"></i>
+        </a>
+        <a ng-show="hasChildren(item)" class="multiAll" href="javascript:void(null)"
+           ng-click="selectItem(item)">
+            {{item.name}}
+            <i class="icon icon-check" ng-show="checked(item)"></i>
+        </a>
+        <ul ng-show="hasChildren(item)" class="menu">
+            <li ng-include="'itemTemplate'">
+        </ul>
+    </li>
+</script>

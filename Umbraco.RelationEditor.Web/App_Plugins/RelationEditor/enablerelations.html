@@ -1,0 +1,29 @@
+﻿<div ng-controller="RelationEditor.EnableRelationsController" class="enableRelations">
+    <div class="umb-dialog-body">
+        <div class="umb-pane">
+            <p class="abstract">
+                Enable relations for {{currentNode.name}}
+            </p>
+            
+            <div ng-repeat="relationType in data.relationTypes" class="row-fluid">
+                <div class="span10">
+                    <label>
+                        <input type="checkbox" ng-model="relationType.Enabled" />
+                        {{relationType.Name}}
+                    </label>
+                </div>
+                <div class="span2">
+                    <div class="btn-group" ng-show="relationType.isContent">
+                        <div ng-tree-btn="relationType.childTypes" label="Enabled types" is-enabled="isEnabled(relationType)"
+                         btncls="btn-mini w140 btn-success" callback="childrenChanged(relationType, res)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="umb-dialog-footer btn-toolbar umb-btn-toolbar" ng-show="ready">
+        <a class="btn btn-link" ng-click="nav.hideDialog()">Cancel</a>
+        <button class="btn btn-primary" ng-click="save()">Save</button>
+    </div>
+</div>
