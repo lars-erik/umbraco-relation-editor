@@ -27,6 +27,18 @@ namespace Umbraco.RelationEditor.Tests
   </ObjectType>
 </RelationEditor>";
 
+        private const string BreadCrumbXml = @"<RelationEditor>
+  <ObjectType Alias=""page"" Name=""Document"" ShowBreadCrumb=""True"" BreadCrumbSeparator=""-&gt;"">
+    <EnabledRelation Alias=""pagePostRelation"">
+      <EnabledChildType Alias=""post"" />
+    </EnabledRelation>
+    <EnabledRelation Alias=""pageNewsPostRelation"" />
+  </ObjectType>
+  <ObjectType Alias=""post"" Name=""Document"" ShowBreadCrumb=""True"" BreadCrumbSeparator=""/"">
+    <EnabledRelation Alias=""pagePostRelation"" />
+  </ObjectType>
+</RelationEditor>";
+
         private const string Json = @"{
   ""ObjectTypes"": [
     {
@@ -50,6 +62,43 @@ namespace Umbraco.RelationEditor.Tests
     {
       ""Name"": ""Document"",
       ""Alias"": ""post"",
+      ""EnabledRelations"": [
+        {
+          ""Alias"": ""pagePostRelation"",
+          ""EnabledChildTypes"": []
+        }
+      ]
+    }
+  ]
+}";
+
+        private const string BreadCrumbJson = @"{
+  ""ObjectTypes"": [
+    {
+      ""Name"": ""Document"",
+      ""Alias"": ""page"",
+      ""ShowBreadCrumb"": ""True"",
+      ""BreadCrumbSeparator"": ""->"",
+      ""EnabledRelations"": [
+        {
+          ""Alias"": ""pagePostRelation"",
+          ""EnabledChildTypes"": [
+            {
+              ""Alias"": ""post""
+            }
+          ]
+        },
+        {
+          ""Alias"": ""pageNewsPostRelation"",
+          ""EnabledChildTypes"": []
+        }
+      ]
+    },
+    {
+      ""Name"": ""Document"",
+      ""Alias"": ""post"",
+      ""ShowBreadCrumb"": ""True"",
+      ""BreadCrumbSeparator"": ""/"",
       ""EnabledRelations"": [
         {
           ""Alias"": ""pagePostRelation"",
@@ -106,6 +155,51 @@ namespace Umbraco.RelationEditor.Tests
         }
 
         [Test]
+        public void SerializeBreadCrumbConfiguration()
+        {
+            var config = CreateBreadCrumbConfig();
+
+            var stringBuilder = new StringBuilder();
+            var writer = new StringWriter(stringBuilder);
+            var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true });
+            var namespaces = new XmlSerializerNamespaces(new[] { new XmlQualifiedName("") });
+
+            var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
+            serializer.Serialize(xmlWriter, config, namespaces);
+            writer.Flush();
+
+            Console.WriteLine(stringBuilder.ToString());
+
+            Assert.AreEqual(BreadCrumbXml, stringBuilder.ToString());
+        }
+
+        [Test]
+        public void SerializeBreadCrumbConfigurationAsJson()
+        {
+            var config = CreateBreadCrumbConfig();
+
+            var output = JsonConvert.SerializeObject(config, Formatting.Indented, new StringEnumConverter());
+
+            Console.WriteLine(output);
+
+            Assert.AreEqual(BreadCrumbJson, output);
+        }
+
+        [Test]
+        public void DeserializeBreadCrumbConfiguration()
+        {
+            var config = DeserializeFromBreadCrumbInput();
+            AssertBreadCrumbDeserialized(config);
+        }
+
+        [Test]
+        public void DeserializeBreadCrumbConfigurationFromJson()
+        {
+            var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(BreadCrumbJson, new StringEnumConverter());
+            AssertBreadCrumbDeserialized(config);
+        }
+
+        [Test]
         public void GetMethods()
         {
             var config = DeserializeFromInput();
@@ -127,6 +221,17 @@ namespace Umbraco.RelationEditor.Tests
 
             Assert.AreEqual("pagePostRelation", config.ObjectTypes[1].EnabledRelations[0].Alias);
             Assert.AreEqual(UmbracoObjectTypes.Document, config.ObjectTypes[1].Name);
+        }
+
+        private static void AssertBreadCrumbDeserialized(RelationEditorConfiguration config)
+        {
+            AssertDeserialized(config);
+
+            Assert.AreEqual("->", config.ObjectTypes[0].BreadCrumbSeparator);
+            Assert.AreEqual("/", config.ObjectTypes[1].BreadCrumbSeparator);
+
+            Assert.IsTrue(config.ObjectTypes[0].ShowBreadCrumb.GetValueOrDefault(false));
+            Assert.IsTrue(config.ObjectTypes[1].ShowBreadCrumb.GetValueOrDefault(false));
         }
 
         private static RelationEditorConfiguration CreateConfig()
@@ -169,10 +274,27 @@ namespace Umbraco.RelationEditor.Tests
             return config;
         }
 
+        private static RelationEditorConfiguration CreateBreadCrumbConfig()
+        {
+            var config = CreateConfig();
+            config.ObjectTypes.ForEach(x => { x.ShowBreadCrumb = true; x.BreadCrumbSeparator = "->";});
+            config.ObjectTypes[0].BreadCrumbSeparator = "->";
+            config.ObjectTypes[1].BreadCrumbSeparator = "/";
+            return config;
+        }
+
         private static RelationEditorConfiguration DeserializeFromInput()
         {
             var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
             var reader = new StringReader(Xml);
+            var config = (RelationEditorConfiguration)serializer.Deserialize(reader);
+            return config;
+        }
+
+        private static RelationEditorConfiguration DeserializeFromBreadCrumbInput()
+        {
+            var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
+            var reader = new StringReader(BreadCrumbXml);
             var config = (RelationEditorConfiguration)serializer.Deserialize(reader);
             return config;
         }

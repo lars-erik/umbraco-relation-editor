@@ -54,7 +54,7 @@ namespace Umbraco.RelationEditor
         public bool? ShowBreadCrumb;
 
         [XmlAttribute("ShowBreadCrumb")]
-        [JsonProperty("ShowBreadCrumb", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("ShowBreadCrumb", NullValueHandling = NullValueHandling.Ignore, Order = 3)]
         public string StrShowBreadCrumb
         {
             get { return (ShowBreadCrumb.HasValue) ? ShowBreadCrumb.ToString() : null; }
@@ -62,11 +62,11 @@ namespace Umbraco.RelationEditor
         }
 
         [XmlAttribute]
-        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore, Order = 4)]
         public string BreadCrumbSeparator { get; set; }
 
         [XmlElement("EnabledRelation")]
-        [JsonProperty(Order = 3)]
+        [JsonProperty(Order = 5)]
         public List<EnabledRelationConfiguration> EnabledRelations { get; set; }
 
         public EnabledRelationConfiguration Get(string alias)

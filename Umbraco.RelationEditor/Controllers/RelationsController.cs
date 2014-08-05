@@ -15,19 +15,19 @@ namespace Umbraco.RelationEditor.Controllers
     [PluginController("RelationsEditor")]
     public class RelationsController : UmbracoApiController
     {
-        private readonly IRelationService relationService;
-        private readonly IContentService contentService;
-        private readonly IMediaService mediaService;
-        private readonly IContentTypeService contentTypeService;
-        private readonly IEntityService entityService;
+        private readonly IRelationService _relationService;
+        private readonly IContentService _contentService;
+        private readonly IMediaService _mediaService;
+        private readonly IContentTypeService _contentTypeService;
+        private readonly IEntityService _entityService;
 
         public RelationsController()
         {
-            relationService = ApplicationContext.Services.RelationService;
-            contentService = ApplicationContext.Services.ContentService;
-            mediaService = ApplicationContext.Services.MediaService;
-            contentTypeService = ApplicationContext.Services.ContentTypeService;
-            entityService = ApplicationContext.Services.EntityService;
+            _relationService = ApplicationContext.Services.RelationService;
+            _contentService = ApplicationContext.Services.ContentService;
+            _mediaService = ApplicationContext.Services.MediaService;
+            _contentTypeService = ApplicationContext.Services.ContentTypeService;
+            _entityService = ApplicationContext.Services.EntityService;
         }
 
         public string[] GetObjectTypes()
@@ -43,7 +43,7 @@ namespace Umbraco.RelationEditor.Controllers
             )
         {
             var treeNodeType = new TreeNodeType(section, treeType);
-            var fromType = UmbracoObjectTypes.Unknown;
+            UmbracoObjectTypes fromType;
 
             if (
                 !Mappings.TreeNodeObjectTypes.TryGetValue(treeNodeType, out fromType)
@@ -51,15 +51,15 @@ namespace Umbraco.RelationEditor.Controllers
             )
                 throw new Exception("Cannot get relation types for unknown object type");
 
-            var entity = entityService.Get(parentId, fromType);
-            object alias = null;
+            var entity = _entityService.Get(parentId, fromType);
+            object alias;
             entity.AdditionalData.TryGetValue("Alias", out alias);
             var typeConfig = RelationEditor.Configuration.Get(fromType, alias as string);
 
-            var allRelations = relationService.GetByParentOrChildId(parentId);
+            var allRelations = _relationService.GetByParentOrChildId(parentId);
             var allowedObjectTypes = Mappings.AllowedRelations[fromType];
             var enabledRelations = typeConfig.EnabledRelations.Select(r => r.Alias).ToArray();
-            var relationSets = relationService.GetAllRelationTypes()
+            var relationSets = _relationService.GetAllRelationTypes()
                 .Where(rt => 
                     rt.ParentObjectType == fromType.GetGuid() && 
                         enabledRelations.Contains(rt.Alias) &&
@@ -84,12 +84,12 @@ namespace Umbraco.RelationEditor.Controllers
                             if (r.ParentId == parentId)
                             {
                                 otherId = r.ChildId;
-                                otherName = GetChildName(rt.ChildObjectType, r.ChildId);
+                                otherName = GetChildName(rt.ChildObjectType, r.ChildId, typeConfig);
                             }
                             else
                             {
                                 otherId = r.ParentId;
-                                otherName = GetChildName(rt.ParentObjectType, r.ParentId);
+                                otherName = GetChildName(rt.ParentObjectType, r.ParentId, typeConfig);
                             }
                             return new RelationDto
                             {
@@ -115,24 +115,24 @@ namespace Umbraco.RelationEditor.Controllers
             if (contentRelations.Sets == null || !contentRelations.Sets.Any())
                 return;
             
-            var relations = relationService.GetByParentId(contentRelations.ParentId).ToList();
-            var parentEntity = entityService.Get(contentRelations.ParentId, contentRelations.ParentType);
+            var relations = _relationService.GetByParentId(contentRelations.ParentId).ToList();
+            var parentEntity = _entityService.Get(contentRelations.ParentId, contentRelations.ParentType);
             
             foreach (var set in contentRelations.Sets)
             {
                 var typeId = set.RelationTypeId;
-                var type = relationService.GetRelationTypeById(set.RelationTypeId);
+                var type = _relationService.GetRelationTypeById(set.RelationTypeId);
                 var setRelations = relations.Where(r => r.RelationTypeId == typeId);
                 foreach (var removeRelation in setRelations)
-                    relationService.Delete(removeRelation);
+                    _relationService.Delete(removeRelation);
 
                 foreach (var relation in set.Relations)
                 {
                     if (relation.State == RelationStateEnum.Deleted)
                         continue;
 
-                    var childEntity = entityService.Get(relation.ChildId, UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
-                    relationService.Relate(parentEntity, childEntity, type);
+                    var childEntity = _entityService.Get(relation.ChildId, UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
+                    _relationService.Relate(parentEntity, childEntity, type);
                 }
             }
         }
@@ -155,20 +155,32 @@ namespace Umbraco.RelationEditor.Controllers
             return new IsAllowedResult(false);
         }
 
-        private string GetChildName(Guid childObjectType, int childId)
+        private string GetChildName(Guid childObjectType, int childId, ObjectTypeConfiguration typeConfiguration)
         {
             switch (UmbracoObjectTypesExtensions.GetUmbracoObjectType(childObjectType))
             {
                 case UmbracoObjectTypes.Document:
-                    var node = contentService.GetById(childId);
-                    var ancestors = String.Join(" / ", contentService.GetById(childId).Ancestors().Select(x => x.Name));
-                    return string.Concat(ancestors, " / " , node.Name);
+                    var node = _contentService.GetById(childId);
+                    if (typeConfiguration.ShowBreadCrumb.GetValueOrDefault(false))
+                    {
+                        var ancestors = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), node.Ancestors().Select(x => x.Name));
+                        return string.Concat(ancestors, " / ", node.Name);
+                    }
+                    return node.Name;
+
                 case UmbracoObjectTypes.Media:
-                    return mediaService.GetById(childId).Name;
+                    var mediaNode = _mediaService.GetById(childId);
+                    if (typeConfiguration.ShowBreadCrumb.GetValueOrDefault(false))
+                    {
+                        var ancestors = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), mediaNode.Ancestors().Select(x => x.Name));
+                        return string.Concat(ancestors, " / ", mediaNode.Name);
+                    }
+                    return mediaNode.Name;
+
                 case UmbracoObjectTypes.DocumentType:
-                    return contentTypeService.GetContentType(childId).Name;
+                    return _contentTypeService.GetContentType(childId).Name;
                 case UmbracoObjectTypes.MediaType:
-                    return contentTypeService.GetMediaType(childId).Name;
+                    return _contentTypeService.GetMediaType(childId).Name;
             }
             throw new Exception("Unknown child type");
         }
