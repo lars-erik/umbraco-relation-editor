@@ -160,7 +160,9 @@ namespace Umbraco.RelationEditor.Controllers
             switch (UmbracoObjectTypesExtensions.GetUmbracoObjectType(childObjectType))
             {
                 case UmbracoObjectTypes.Document:
-                    return contentService.GetById(childId).Name;
+                    var node = contentService.GetById(childId);
+                    var ancestors = String.Join(" / ", contentService.GetById(childId).Ancestors().Select(x => x.Name));
+                    return string.Concat(ancestors, " / " , node.Name);
                 case UmbracoObjectTypes.Media:
                     return mediaService.GetById(childId).Name;
                 case UmbracoObjectTypes.DocumentType:
