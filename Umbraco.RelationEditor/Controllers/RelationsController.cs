@@ -80,21 +80,24 @@ namespace Umbraco.RelationEditor.Controllers
                         .Select(r =>
                         {
                             int otherId;
-                            string otherName;
+                            string otherName, fullPath;
+                            var config = RelationEditor.Configuration.Config;
                             if (r.ParentId == parentId)
                             {
                                 otherId = r.ChildId;
-                                otherName = GetChildName(rt.ChildObjectType, r.ChildId, typeConfig);
+                                otherName = GetChildName(rt.ChildObjectType, r.ChildId, config, out fullPath);
+                                
                             }
                             else
                             {
                                 otherId = r.ParentId;
-                                otherName = GetChildName(rt.ParentObjectType, r.ParentId, typeConfig);
+                                otherName = GetChildName(rt.ParentObjectType, r.ParentId, config, out fullPath);
                             }
                             return new RelationDto
                             {
                                 ChildId = otherId,
                                 ChildName = otherName,
+                                FullPath = fullPath,
                                 State = RelationStateEnum.Unmodified
                             };
                         }).ToList()
@@ -155,31 +158,27 @@ namespace Umbraco.RelationEditor.Controllers
             return new IsAllowedResult(false);
         }
 
-        private string GetChildName(Guid childObjectType, int childId, ObjectTypeConfiguration typeConfiguration)
+        private string GetChildName(Guid childObjectType, int childId, RelationEditorConfiguration typeConfiguration, out string fullPath)
         {
             switch (UmbracoObjectTypesExtensions.GetUmbracoObjectType(childObjectType))
             {
                 case UmbracoObjectTypes.Document:
                     var node = contentService.GetById(childId);
-                    if (typeConfiguration.ShowBreadCrumb.GetValueOrDefault(false))
-                    {
-                        var ancestors = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), node.Ancestors().Select(x => x.Name));
-                        return string.Concat(ancestors, " / ", node.Name);
-                    }
+                    var ancestorsDoc = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), node.Ancestors().Select(x => x.Name));
+                    fullPath = string.Concat(ancestorsDoc, " ", typeConfiguration.BreadCrumbSeparator, " ", node.Name);
                     return node.Name;
-
+                    
                 case UmbracoObjectTypes.Media:
                     var mediaNode = mediaService.GetById(childId);
-                    if (typeConfiguration.ShowBreadCrumb.GetValueOrDefault(false))
-                    {
-                        var ancestors = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), mediaNode.Ancestors().Select(x => x.Name));
-                        return string.Concat(ancestors, " / ", mediaNode.Name);
-                    }
+                    var ancestorsMedia = String.Join(string.Concat(" ", typeConfiguration.BreadCrumbSeparator, " "), mediaNode.Ancestors().Select(x => x.Name));
+                    fullPath = string.Concat(ancestorsMedia, " ", typeConfiguration.BreadCrumbSeparator, " ", mediaNode.Name);
                     return mediaNode.Name;
 
                 case UmbracoObjectTypes.DocumentType:
+                    fullPath = "";
                     return contentTypeService.GetContentType(childId).Name;
                 case UmbracoObjectTypes.MediaType:
+                    fullPath = "";
                     return contentTypeService.GetMediaType(childId).Name;
             }
             throw new Exception("Unknown child type");
@@ -218,6 +217,8 @@ namespace Umbraco.RelationEditor.Controllers
     {
         public int ChildId { get; set; }
         public string ChildName { get; set; }
+
+        public string FullPath { get; set; }
         public RelationStateEnum State { get; set; }
     }
 

@@ -112,14 +112,14 @@ namespace Umbraco.RelationEditor
 
     public class Configuration
     {
-        private static RelationEditorConfiguration configuration = null;
+        public static RelationEditorConfiguration Config = null;
 
         private static IEnumerable<ObjectTypeConfiguration> ObjectTypes
         {
             get
             {
                 EnsureConfiguration();
-                return configuration.ObjectTypes;
+                return Config.ObjectTypes;
             }
         }
 
@@ -132,20 +132,20 @@ namespace Umbraco.RelationEditor
 
         private static void EnsureConfiguration()
         {
-            if (configuration == null)
+            if (Config == null)
             {
                 try
                 {
                     var serializer = new XmlSerializer(typeof (RelationEditorConfiguration));
                     using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
                     { 
-                        configuration = (RelationEditorConfiguration) serializer.Deserialize(reader);
+                        Config = (RelationEditorConfiguration) serializer.Deserialize(reader);
                     }
                 }
                 catch(Exception ex)
                 {
                     LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
-                    configuration = new RelationEditorConfiguration();
+                    Config = new RelationEditorConfiguration();
                 }
             }
         }
