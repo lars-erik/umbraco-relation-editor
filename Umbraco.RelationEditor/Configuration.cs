@@ -27,6 +27,22 @@ namespace Umbraco.RelationEditor
     [XmlRoot("RelationEditor")]
     public class RelationEditorConfiguration
     {
+        [XmlIgnore]
+        [JsonIgnore]
+        public BreadCrumbMode BreadCrumbMode;
+
+        [XmlAttribute("BreadCrumbMode")]
+        [JsonProperty("BreadCrumbMode", NullValueHandling = NullValueHandling.Ignore)]
+        public string StrBreadCrumbMode
+        {
+            get { return BreadCrumbMode.ToString(); }
+            set { BreadCrumbMode = Enum.IsDefined(typeof(BreadCrumbMode), value) ? (BreadCrumbMode)Enum.Parse(typeof(BreadCrumbMode), value) : BreadCrumbMode.ToolTip; }
+        }
+
+        [XmlAttribute]
+        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore)]
+        public string BreadCrumbSeparator { get; set; }
+        
         [XmlElement("ObjectType")]
         public List<ObjectTypeConfiguration> ObjectTypes { get; set; }
 
@@ -48,23 +64,7 @@ namespace Umbraco.RelationEditor
         [XmlAttribute]
         [JsonProperty(Order = 1)]
         public UmbracoObjectTypes Name { get; set; }
-
-        [XmlIgnore]
-        [JsonIgnore]
-        public bool? ShowBreadCrumb;
-
-        [XmlAttribute("ShowBreadCrumb")]
-        [JsonProperty("ShowBreadCrumb", NullValueHandling = NullValueHandling.Ignore, Order = 3)]
-        public string StrShowBreadCrumb
-        {
-            get { return (ShowBreadCrumb.HasValue) ? ShowBreadCrumb.ToString() : null; }
-            set { ShowBreadCrumb = !string.IsNullOrEmpty(value) ? bool.Parse(value) : default(bool?); }
-        }
-
-        [XmlAttribute]
-        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore, Order = 4)]
-        public string BreadCrumbSeparator { get; set; }
-
+        
         [XmlElement("EnabledRelation")]
         [JsonProperty(Order = 5)]
         public List<EnabledRelationConfiguration> EnabledRelations { get; set; }
@@ -149,5 +149,11 @@ namespace Umbraco.RelationEditor
                 }
             }
         }
+    }
+
+    public enum BreadCrumbMode
+    {
+        ToolTip,
+        Caption
     }
 }

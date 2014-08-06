@@ -15,7 +15,7 @@ namespace Umbraco.RelationEditor.Tests
     [TestFixture]
     public class ConfigSerializationTests
     {
-        private const string Xml = @"<RelationEditor>
+        private const string XmlToolTip = @"<RelationEditor BreadCrumbMode=""ToolTip"" BreadCrumbSeparator=""/"">
   <ObjectType Alias=""page"" Name=""Document"">
     <EnabledRelation Alias=""pagePostRelation"">
       <EnabledChildType Alias=""post"" />
@@ -27,19 +27,21 @@ namespace Umbraco.RelationEditor.Tests
   </ObjectType>
 </RelationEditor>";
 
-        private const string BreadCrumbXml = @"<RelationEditor>
-  <ObjectType Alias=""page"" Name=""Document"" ShowBreadCrumb=""True"" BreadCrumbSeparator=""-&gt;"">
+        private const string XmlCaption = @"<RelationEditor BreadCrumbMode=""Caption"" BreadCrumbSeparator=""-&gt;"">
+  <ObjectType Alias=""page"" Name=""Document"">
     <EnabledRelation Alias=""pagePostRelation"">
       <EnabledChildType Alias=""post"" />
     </EnabledRelation>
     <EnabledRelation Alias=""pageNewsPostRelation"" />
   </ObjectType>
-  <ObjectType Alias=""post"" Name=""Document"" ShowBreadCrumb=""True"" BreadCrumbSeparator=""/"">
+  <ObjectType Alias=""post"" Name=""Document"">
     <EnabledRelation Alias=""pagePostRelation"" />
   </ObjectType>
 </RelationEditor>";
 
-        private const string Json = @"{
+        private const string JsonToolTip = @"{
+  ""BreadCrumbMode"": ""ToolTip"",
+  ""BreadCrumbSeparator"": ""/"",
   ""ObjectTypes"": [
     {
       ""Name"": ""Document"",
@@ -72,13 +74,13 @@ namespace Umbraco.RelationEditor.Tests
   ]
 }";
 
-        private const string BreadCrumbJson = @"{
+        private const string JsonCaption = @"{
+  ""BreadCrumbMode"": ""Caption"",
+  ""BreadCrumbSeparator"": ""->"",
   ""ObjectTypes"": [
     {
       ""Name"": ""Document"",
       ""Alias"": ""page"",
-      ""ShowBreadCrumb"": ""True"",
-      ""BreadCrumbSeparator"": ""->"",
       ""EnabledRelations"": [
         {
           ""Alias"": ""pagePostRelation"",
@@ -97,8 +99,6 @@ namespace Umbraco.RelationEditor.Tests
     {
       ""Name"": ""Document"",
       ""Alias"": ""post"",
-      ""ShowBreadCrumb"": ""True"",
-      ""BreadCrumbSeparator"": ""/"",
       ""EnabledRelations"": [
         {
           ""Alias"": ""pagePostRelation"",
@@ -112,7 +112,7 @@ namespace Umbraco.RelationEditor.Tests
         [Test]
         public void SerializeConfiguration()
         {
-            var config = CreateConfig();
+            var config = CreateToolTipConfig();
 
             var stringBuilder = new StringBuilder();
             var writer = new StringWriter(stringBuilder);
@@ -125,39 +125,39 @@ namespace Umbraco.RelationEditor.Tests
 
             Console.WriteLine(stringBuilder.ToString());
 
-            Assert.AreEqual(Xml, stringBuilder.ToString());
+            Assert.AreEqual(XmlToolTip, stringBuilder.ToString());
         }
 
         [Test]
         public void SerializeConfigurationAsJson()
         {
-            var config = CreateConfig();
+            var config = CreateToolTipConfig();
 
             var output = JsonConvert.SerializeObject(config, Formatting.Indented, new StringEnumConverter());
 
             Console.WriteLine(output);
 
-            Assert.AreEqual(Json, output);
+            Assert.AreEqual(JsonToolTip, output);
         }
 
         [Test]
-        public void DeserializeConfiguration()
+        public void DeserializeBreadCrumbToolTipConfiguration()
         {
-            var config = DeserializeFromInput();
-            AssertDeserialized(config);
+            var config = DeserializeFromBreadCrumbToolTipInput();
+            AssertBreadCrumbToolTipDeserialized(config);
         }
 
         [Test]
-        public void DeserializeConfigurationFromJson()
+        public void DeserializeBreadCrumbToolTipConfigurationFromJson()
         {
-            var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(Json, new StringEnumConverter());
-            AssertDeserialized(config);
+            var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(JsonToolTip, new StringEnumConverter());
+            AssertBreadCrumbToolTipDeserialized(config);
         }
 
         [Test]
-        public void SerializeBreadCrumbConfiguration()
+        public void SerializeBreadCrumbCaptionConfiguration()
         {
-            var config = CreateBreadCrumbConfig();
+            var config = CreateBreadCrumbCaptionConfig();
 
             var stringBuilder = new StringBuilder();
             var writer = new StringWriter(stringBuilder);
@@ -170,39 +170,39 @@ namespace Umbraco.RelationEditor.Tests
 
             Console.WriteLine(stringBuilder.ToString());
 
-            Assert.AreEqual(BreadCrumbXml, stringBuilder.ToString());
+            Assert.AreEqual(XmlCaption, stringBuilder.ToString());
         }
 
         [Test]
-        public void SerializeBreadCrumbConfigurationAsJson()
+        public void SerializeBreadCrumbCaptionConfigurationAsJson()
         {
-            var config = CreateBreadCrumbConfig();
+            var config = CreateBreadCrumbCaptionConfig();
 
             var output = JsonConvert.SerializeObject(config, Formatting.Indented, new StringEnumConverter());
 
             Console.WriteLine(output);
 
-            Assert.AreEqual(BreadCrumbJson, output);
+            Assert.AreEqual(JsonCaption, output);
         }
 
         [Test]
-        public void DeserializeBreadCrumbConfiguration()
+        public void DeserializeBreadCrumbCaptionConfiguration()
         {
-            var config = DeserializeFromBreadCrumbInput();
-            AssertBreadCrumbDeserialized(config);
+            var config = DeserializeFromBreadCrumbCaptionInput();
+            AssertBreadCrumbCaptionDeserialized(config);
         }
 
         [Test]
-        public void DeserializeBreadCrumbConfigurationFromJson()
+        public void DeserializeBreadCrumbCaptionConfigurationFromJson()
         {
-            var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(BreadCrumbJson, new StringEnumConverter());
-            AssertBreadCrumbDeserialized(config);
+            var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(JsonCaption, new StringEnumConverter());
+            AssertBreadCrumbCaptionDeserialized(config);
         }
 
         [Test]
         public void GetMethods()
         {
-            var config = DeserializeFromInput();
+            var config = DeserializeFromBreadCrumbToolTipInput();
             Assert.IsFalse(config.Get(UmbracoObjectTypes.Member, "").Enabled);
             Assert.IsTrue(config.Get(UmbracoObjectTypes.Document, "page").Enabled);
             Assert.IsFalse(config.Get(UmbracoObjectTypes.Document, "page").Get("invalidRelation").Enabled);
@@ -223,21 +223,27 @@ namespace Umbraco.RelationEditor.Tests
             Assert.AreEqual(UmbracoObjectTypes.Document, config.ObjectTypes[1].Name);
         }
 
-        private static void AssertBreadCrumbDeserialized(RelationEditorConfiguration config)
+        private static void AssertBreadCrumbCaptionDeserialized(RelationEditorConfiguration config)
         {
             AssertDeserialized(config);
 
-            Assert.AreEqual("->", config.ObjectTypes[0].BreadCrumbSeparator);
-            Assert.AreEqual("/", config.ObjectTypes[1].BreadCrumbSeparator);
-
-            Assert.IsTrue(config.ObjectTypes[0].ShowBreadCrumb.GetValueOrDefault(false));
-            Assert.IsTrue(config.ObjectTypes[1].ShowBreadCrumb.GetValueOrDefault(false));
+            Assert.AreEqual("->", config.BreadCrumbSeparator);
+            Assert.AreEqual(config.BreadCrumbMode,BreadCrumbMode.Caption);
         }
 
-        private static RelationEditorConfiguration CreateConfig()
+        private static void AssertBreadCrumbToolTipDeserialized(RelationEditorConfiguration config)
+        {
+            AssertDeserialized(config);
+
+            Assert.AreEqual("/", config.BreadCrumbSeparator);
+            Assert.AreEqual(config.BreadCrumbMode, BreadCrumbMode.ToolTip);
+        }
+
+        private static RelationEditorConfiguration CreateToolTipConfig()
         {
             var config = new RelationEditorConfiguration
             {
+                BreadCrumbSeparator = "/",
                 ObjectTypes = new List<ObjectTypeConfiguration>
                 {
                     new ObjectTypeConfiguration
@@ -274,27 +280,26 @@ namespace Umbraco.RelationEditor.Tests
             return config;
         }
 
-        private static RelationEditorConfiguration CreateBreadCrumbConfig()
+        private static RelationEditorConfiguration CreateBreadCrumbCaptionConfig()
         {
-            var config = CreateConfig();
-            config.ObjectTypes.ForEach(x => { x.ShowBreadCrumb = true; x.BreadCrumbSeparator = "->";});
-            config.ObjectTypes[0].BreadCrumbSeparator = "->";
-            config.ObjectTypes[1].BreadCrumbSeparator = "/";
+            var config = CreateToolTipConfig();
+            config.BreadCrumbMode = BreadCrumbMode.Caption;
+            config.BreadCrumbSeparator = "->";
             return config;
         }
 
-        private static RelationEditorConfiguration DeserializeFromInput()
+        private static RelationEditorConfiguration DeserializeFromBreadCrumbToolTipInput()
         {
             var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
-            var reader = new StringReader(Xml);
+            var reader = new StringReader(XmlToolTip);
             var config = (RelationEditorConfiguration)serializer.Deserialize(reader);
             return config;
         }
 
-        private static RelationEditorConfiguration DeserializeFromBreadCrumbInput()
+        private static RelationEditorConfiguration DeserializeFromBreadCrumbCaptionInput()
         {
             var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
-            var reader = new StringReader(BreadCrumbXml);
+            var reader = new StringReader(XmlCaption);
             var config = (RelationEditorConfiguration)serializer.Deserialize(reader);
             return config;
         }
