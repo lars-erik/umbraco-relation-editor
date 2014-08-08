@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using Umbraco.Core.Models;
@@ -55,7 +56,7 @@ namespace Umbraco.RelationEditor.Controllers
             object alias;
             entity.AdditionalData.TryGetValue("Alias", out alias);
             var typeConfig = RelationEditor.Configuration.Get(fromType, alias as string);
-
+            var config = RelationEditor.Configuration.Config;
             var allRelations = relationService.GetByParentOrChildId(parentId);
             var allowedObjectTypes = Mappings.AllowedRelations[fromType];
             var enabledRelations = typeConfig.EnabledRelations.Select(r => r.Alias).ToArray();
@@ -81,7 +82,6 @@ namespace Umbraco.RelationEditor.Controllers
                         {
                             int otherId;
                             string otherName, fullPath;
-                            var config = RelationEditor.Configuration.Config;
                             if (r.ParentId == parentId)
                             {
                                 otherId = r.ChildId;
@@ -96,8 +96,8 @@ namespace Umbraco.RelationEditor.Controllers
                             return new RelationDto
                             {
                                 ChildId = otherId,
-                                ChildName = otherName,
-                                FullPath = fullPath,
+                                FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
+                                ChildName = (config.BreadCrumbMode == BreadCrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
                                 State = RelationStateEnum.Unmodified
                             };
                         }).ToList()
@@ -175,11 +175,13 @@ namespace Umbraco.RelationEditor.Controllers
                     return mediaNode.Name;
 
                 case UmbracoObjectTypes.DocumentType:
-                    fullPath = "";
-                    return contentTypeService.GetContentType(childId).Name;
+                    // not going to use paths for Document Type
+                    fullPath = contentTypeService.GetContentType(childId).Name;
+                    return fullPath;
                 case UmbracoObjectTypes.MediaType:
-                    fullPath = "";
-                    return contentTypeService.GetMediaType(childId).Name;
+                    // not going to use paths for Document Type
+                    fullPath = contentTypeService.GetMediaType(childId).Name;
+                    return fullPath;
             }
             throw new Exception("Unknown child type");
         }

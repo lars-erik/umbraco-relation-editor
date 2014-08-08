@@ -20,7 +20,7 @@
                         <tr ng-repeat="relation in resourceSet.Relations" ng-show="isActive(relation)">
                             <td style="width:5%;" class="direction"></td>
                             <td style="width:15%;">{{relation.ChildId}}</td>
-                            <td style="width:70%;">{{relation.ChildName}}</td>
+                            <td style="width:70%;" title="{{relation.FullPath}}">{{relation.ChildName}}</td>
                             <td style="width:10%;"><button class="btn btn-danger" ng-click="remove(relation)">Remove</button></td>
                         </tr>
                     </tbody>
