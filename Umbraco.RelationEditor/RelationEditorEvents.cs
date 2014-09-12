@@ -14,6 +14,8 @@ namespace Umbraco.RelationEditor
 {
     public class RelationEditorEvents : ApplicationEventHandler
     {
+        private static readonly StringComparer IgnoreCase = StringComparer.InvariantCultureIgnoreCase;
+
         protected override void ApplicationStarted(UmbracoApplicationBase umbracoApplication, ApplicationContext applicationContext)
         {
             base.ApplicationStarted(umbracoApplication, applicationContext);
@@ -50,7 +52,7 @@ namespace Umbraco.RelationEditor
                 {
                     var id = Convert.ToInt32(node.Id);
                     var alias = EntityHelper.FindAlias(childObjectType, id);
-                    if (!childTypes.Contains(alias))
+                    if (!childTypes.Contains(alias, IgnoreCase))
                     {
                         node.SetNotPublishedStyle();
                         node.AdditionalData.Add("relationDisallowed", "true");

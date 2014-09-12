@@ -46,6 +46,8 @@ namespace Umbraco.RelationEditor
 
     public class ObjectTypeConfiguration : EntityConfiguration
     {
+        private const StringComparison IgnoreCase = StringComparison.InvariantCultureIgnoreCase;
+
         [XmlAttribute]
         [JsonProperty(Order = 1)]
         public UmbracoObjectTypes Name { get; set; }
@@ -56,7 +58,7 @@ namespace Umbraco.RelationEditor
         public EnabledRelationConfiguration Get(string alias)
         {
             return EnabledRelations
-                .FirstOrDefault(r => r.Alias == alias)
+                .FirstOrDefault(r => r.Alias.Equals(alias, IgnoreCase))
                 ?? new EnabledRelationConfiguration();
         }
 
