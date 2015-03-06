@@ -14,7 +14,8 @@ namespace Umbraco.RelationEditor.Controllers
 {
     [UmbracoApplicationAuthorize("content")]
     [PluginController("RelationsEditor")]
-    public class RelationsController : UmbracoApiController
+    [IsBackOffice]
+    public class RelationsController : UmbracoAuthorizedApiController
     {
         private readonly IRelationService relationService;
         private readonly IContentService contentService;
