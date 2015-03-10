@@ -247,8 +247,8 @@
     }
 
     function RelationsResources($q, $http, umbDataFormatter, umbRequestHelper) {
-        var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/relations/",
-            enableRoot = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/relationseditor/settings/";
+        var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/backoffice/relationseditor/relations/",
+            enableRoot = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/backoffice/relationseditor/settings/";
         return {
             getById: function(section, treeType, id) {
                 return umbRequestHelper.resourcePromise(
