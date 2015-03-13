@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Controllers;
 using Umbraco.Core.Models;
@@ -56,7 +57,7 @@ namespace Umbraco.RelationEditor.Controllers
             object alias = null;
             entity.AdditionalData.TryGetValue("Alias", out alias);
             var typeConfig = RelationEditor.Configuration.Get(fromType, alias as string);
-
+            var config = RelationEditor.Configuration.Config;
             var allRelations = relationService.GetByParentOrChildId(parentId);
             var allowedObjectTypes = Mappings.AllowedRelations[fromType];
             var enabledRelations = typeConfig.EnabledRelations.Select(r => r.Alias).ToArray();
@@ -78,8 +79,29 @@ namespace Umbraco.RelationEditor.Controllers
                             r.RelationTypeId == rt.Id &&
                             (rt.IsBidirectional || r.ParentId == parentId)
                         )
-                        .Select(r => GetChild(r, parentId))
-                        .ToList()
+                        .Select(r =>
+                        {
+                            int otherId;
+                            string otherName, fullPath;
+                            if (r.ParentId == parentId)
+                            {
+                                otherId = r.ChildId;
+                                otherName = GetChildName(rt.ChildObjectType, r.ChildId, config, out fullPath);
+                                
+                            }
+                            else
+                            {
+                                otherId = r.ParentId;
+                                otherName = GetChildName(rt.ParentObjectType, r.ParentId, config, out fullPath);
+                            }
+                            return new RelationDto
+                            {
+                                ChildId = otherId,
+                                FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
+                                ChildName = (config.BreadCrumbMode == BreadCrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
+                                State = RelationStateEnum.Unmodified
+                            };
+                        }).ToList()
                 }).ToList();
 
             return new ContentRelationsDto
@@ -204,6 +226,8 @@ namespace Umbraco.RelationEditor.Controllers
     {
         public int ChildId { get; set; }
         public string ChildName { get; set; }
+
+        public string FullPath { get; set; }
         public RelationStateEnum State { get; set; }
         public bool Deleted { get; set; }
 

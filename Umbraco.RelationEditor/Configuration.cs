@@ -28,13 +28,29 @@ namespace Umbraco.RelationEditor
     [XmlRoot("RelationEditor")]
     public class RelationEditorConfiguration
     {
+        [XmlIgnore]
+        [JsonIgnore]
+        public BreadCrumbMode BreadCrumbMode;
+
+        [XmlAttribute("BreadCrumbMode")]
+        [JsonProperty("BreadCrumbMode", NullValueHandling = NullValueHandling.Ignore)]
+        public string StrBreadCrumbMode
+        {
+            get { return BreadCrumbMode.ToString(); }
+            set { BreadCrumbMode = Enum.IsDefined(typeof(BreadCrumbMode), value) ? (BreadCrumbMode)Enum.Parse(typeof(BreadCrumbMode), value) : BreadCrumbMode.ToolTip; }
+        }
+
+        [XmlAttribute]
+        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore)]
+        public string BreadCrumbSeparator { get; set; }
+        
         [XmlElement("ObjectType")]
         public List<ObjectTypeConfiguration> ObjectTypes { get; set; }
 
         public ObjectTypeConfiguration Get(UmbracoObjectTypes objectType, string alias)
         {
             return ObjectTypes
-                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
+                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias) 
                 ?? new ObjectTypeConfiguration();
         }
 
@@ -51,8 +67,9 @@ namespace Umbraco.RelationEditor
         [XmlAttribute]
         [JsonProperty(Order = 1)]
         public UmbracoObjectTypes Name { get; set; }
+        
         [XmlElement("EnabledRelation")]
-        [JsonProperty(Order = 3)]
+        [JsonProperty(Order = 5)]
         public List<EnabledRelationConfiguration> EnabledRelations { get; set; }
 
         public EnabledRelationConfiguration Get(string alias)
@@ -98,7 +115,6 @@ namespace Umbraco.RelationEditor
 
     public class Configuration
     {
-        private static readonly object LockObj = new object();
         private static RelationEditorConfiguration configuration = null;
 
         private static IEnumerable<ObjectTypeConfiguration> ObjectTypes
@@ -114,7 +130,7 @@ namespace Umbraco.RelationEditor
             get
             {
                 EnsureConfiguration();
-                return configuration;
+                return configuration.ObjectTypes;
             }
         }
 
@@ -122,10 +138,10 @@ namespace Umbraco.RelationEditor
         {
             lock (LockObj)
             {
-                return ObjectTypes
-                    .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
-                    ?? new ObjectTypeConfiguration();
-            }
+            return ObjectTypes
+                .FirstOrDefault(t => t.Name == objectType && t.Alias == alias)
+                ?? new ObjectTypeConfiguration();
+        }
         }
 
         public static void Set(UmbracoObjectTypes objectType, string alias, ObjectTypeConfiguration typeConfiguration)
@@ -166,22 +182,27 @@ namespace Umbraco.RelationEditor
             lock (LockObj)
             {
                 if (configuration == null)
+            {
+                try
                 {
-                    try
-                    {
                         var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
-                        using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
-                        {
+                    using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
+                    { 
                             configuration = (RelationEditorConfiguration)serializer.Deserialize(reader);
-                        }
                     }
+                }
                     catch (Exception ex)
-                    {
-                        LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
-                        configuration = new RelationEditorConfiguration();
-                    }
+                {
+                    LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
+                    configuration = new RelationEditorConfiguration();
                 }
             }
         }
+
+    public enum BreadCrumbMode
+    {
+        ToolTip,
+        Caption
     }
+}
 }
