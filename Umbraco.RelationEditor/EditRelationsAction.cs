@@ -4,7 +4,7 @@ namespace Umbraco.RelationEditor
 {
     public class EditRelationsAction : IAction
     {
-        public char Letter { get { return 'r'; } }
+        public char Letter { get { return (char)0x1337; } }
         public bool ShowInNotifier { get { return true; } }
         public bool CanBePermissionAssigned { get { return false; } }
         public string Icon { get { return "trafic"; } }
@@ -15,7 +15,7 @@ namespace Umbraco.RelationEditor
 
     public class EnableRelationsAction : IAction
     {
-        public char Letter { get { return 'R'; } }
+        public char Letter { get { return (char)0x7331; } }
         public bool ShowInNotifier { get { return true; } }
         public bool CanBePermissionAssigned { get { return false; } }
         public string Icon { get { return "trafic"; } }
