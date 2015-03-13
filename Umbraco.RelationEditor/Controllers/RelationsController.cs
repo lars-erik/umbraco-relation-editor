@@ -17,6 +17,7 @@ namespace Umbraco.RelationEditor.Controllers
     [PluginController("RelationsEditor")]
     public class RelationsController : UmbracoApiController
     {
+        private readonly RelationEditorConfiguration configuration = RelationEditor.Configuration.Instance;
         private readonly IRelationService relationService;
         private readonly IContentService contentService;
         private readonly IMediaService mediaService;
@@ -57,7 +58,6 @@ namespace Umbraco.RelationEditor.Controllers
             object alias = null;
             entity.AdditionalData.TryGetValue("Alias", out alias);
             var typeConfig = RelationEditor.Configuration.Get(fromType, alias as string);
-            var config = RelationEditor.Configuration.Config;
             var allRelations = relationService.GetByParentOrChildId(parentId);
             var allowedObjectTypes = Mappings.AllowedRelations[fromType];
             var enabledRelations = typeConfig.EnabledRelations.Select(r => r.Alias).ToArray();
@@ -82,23 +82,25 @@ namespace Umbraco.RelationEditor.Controllers
                         .Select(r =>
                         {
                             int otherId;
-                            string otherName, fullPath;
+                            Guid relatedType;
                             if (r.ParentId == parentId)
                             {
                                 otherId = r.ChildId;
-                                otherName = GetChildName(rt.ChildObjectType, r.ChildId, config, out fullPath);
-                                
+                                relatedType = rt.ChildObjectType;
                             }
                             else
                             {
                                 otherId = r.ParentId;
-                                otherName = GetChildName(rt.ParentObjectType, r.ParentId, config, out fullPath);
+                                relatedType = rt.ParentObjectType;
                             }
+                            var relEntity = GetEntity(relatedType, otherId);
+                            var otherName = relEntity.Name;
+                            var fullPath = GetFullPath(relEntity);
                             return new RelationDto
                             {
                                 ChildId = otherId,
                                 FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
-                                ChildName = (config.BreadCrumbMode == BreadCrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
+                                ChildName = (configuration.BreadcrumbMode == BreadcrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
                                 State = RelationStateEnum.Unmodified
                             };
                         }).ToList()
@@ -159,11 +161,13 @@ namespace Umbraco.RelationEditor.Controllers
             return new IsAllowedResult(false);
         }
 
-        private RelationDto GetChild(IRelation relation, int parentId)
+        private string GetFullPath(IUmbracoEntity entity)
         {
-            return relation.ParentId == parentId ?
-                GetChild(relation.RelationType.ChildObjectType, relation.ChildId) :
-                GetChild(relation.RelationType.ParentObjectType, relation.ParentId);
+            var content = entity as IContent;
+            var ancestorsPath = "";
+            if (content != null)
+                ancestorsPath = String.Join(" " + configuration.BreadcrumbSeparator + " ", content.Ancestors().Select(x => x.Name));
+            return String.Format("{0} {1} {2}", ancestorsPath, configuration.BreadcrumbSeparator, entity.Name);
         }
 
         private RelationDto GetChild(Guid childObjectType, int childId)

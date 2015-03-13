@@ -15,7 +15,7 @@ namespace Umbraco.RelationEditor.Tests
     [TestFixture]
     public class ConfigSerializationTests
     {
-        private const string XmlToolTip = @"<RelationEditor BreadCrumbMode=""ToolTip"" BreadCrumbSeparator=""/"">
+        private const string XmlToolTip = @"<RelationEditor BreadcrumbMode=""ToolTip"" BreadcrumbSeparator=""/"">
   <ObjectType Alias=""page"" Name=""Document"">
     <EnabledRelation Alias=""pagePostRelation"">
       <EnabledChildType Alias=""post"" />
@@ -27,7 +27,7 @@ namespace Umbraco.RelationEditor.Tests
   </ObjectType>
 </RelationEditor>";
 
-        private const string XmlCaption = @"<RelationEditor BreadCrumbMode=""Caption"" BreadCrumbSeparator=""-&gt;"">
+        private const string XmlCaption = @"<RelationEditor BreadcrumbMode=""Caption"" BreadcrumbSeparator=""-&gt;"">
   <ObjectType Alias=""page"" Name=""Document"">
     <EnabledRelation Alias=""pagePostRelation"">
       <EnabledChildType Alias=""post"" />
@@ -40,8 +40,8 @@ namespace Umbraco.RelationEditor.Tests
 </RelationEditor>";
 
         private const string JsonToolTip = @"{
-  ""BreadCrumbMode"": ""ToolTip"",
-  ""BreadCrumbSeparator"": ""/"",
+  ""BreadcrumbMode"": ""ToolTip"",
+  ""BreadcrumbSeparator"": ""/"",
   ""ObjectTypes"": [
     {
       ""Name"": ""Document"",
@@ -75,8 +75,8 @@ namespace Umbraco.RelationEditor.Tests
 }";
 
         private const string JsonCaption = @"{
-  ""BreadCrumbMode"": ""Caption"",
-  ""BreadCrumbSeparator"": ""->"",
+  ""BreadcrumbMode"": ""Caption"",
+  ""BreadcrumbSeparator"": ""->"",
   ""ObjectTypes"": [
     {
       ""Name"": ""Document"",
@@ -141,23 +141,23 @@ namespace Umbraco.RelationEditor.Tests
         }
 
         [Test]
-        public void DeserializeBreadCrumbToolTipConfiguration()
+        public void DeserializeBreadcrumbToolTipConfiguration()
         {
-            var config = DeserializeFromBreadCrumbToolTipInput();
-            AssertBreadCrumbToolTipDeserialized(config);
+            var config = DeserializeFromBreadcrumbToolTipInput();
+            AssertBreadcrumbToolTipDeserialized(config);
         }
 
         [Test]
-        public void DeserializeBreadCrumbToolTipConfigurationFromJson()
+        public void DeserializeBreadcrumbToolTipConfigurationFromJson()
         {
             var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(JsonToolTip, new StringEnumConverter());
-            AssertBreadCrumbToolTipDeserialized(config);
+            AssertBreadcrumbToolTipDeserialized(config);
         }
 
         [Test]
-        public void SerializeBreadCrumbCaptionConfiguration()
+        public void SerializeBreadcrumbCaptionConfiguration()
         {
-            var config = CreateBreadCrumbCaptionConfig();
+            var config = CreateBreadcrumbCaptionConfig();
 
             var stringBuilder = new StringBuilder();
             var writer = new StringWriter(stringBuilder);
@@ -174,9 +174,9 @@ namespace Umbraco.RelationEditor.Tests
         }
 
         [Test]
-        public void SerializeBreadCrumbCaptionConfigurationAsJson()
+        public void SerializeBreadcrumbCaptionConfigurationAsJson()
         {
-            var config = CreateBreadCrumbCaptionConfig();
+            var config = CreateBreadcrumbCaptionConfig();
 
             var output = JsonConvert.SerializeObject(config, Formatting.Indented, new StringEnumConverter());
 
@@ -186,23 +186,23 @@ namespace Umbraco.RelationEditor.Tests
         }
 
         [Test]
-        public void DeserializeBreadCrumbCaptionConfiguration()
+        public void DeserializeBreadcrumbCaptionConfiguration()
         {
-            var config = DeserializeFromBreadCrumbCaptionInput();
-            AssertBreadCrumbCaptionDeserialized(config);
+            var config = DeserializeFromBreadcrumbCaptionInput();
+            AssertBreadcrumbCaptionDeserialized(config);
         }
 
         [Test]
-        public void DeserializeBreadCrumbCaptionConfigurationFromJson()
+        public void DeserializeBreadcrumbCaptionConfigurationFromJson()
         {
             var config = JsonConvert.DeserializeObject<RelationEditorConfiguration>(JsonCaption, new StringEnumConverter());
-            AssertBreadCrumbCaptionDeserialized(config);
+            AssertBreadcrumbCaptionDeserialized(config);
         }
 
         [Test]
         public void GetMethods()
         {
-            var config = DeserializeFromBreadCrumbToolTipInput();
+            var config = DeserializeFromBreadcrumbToolTipInput();
             Assert.IsFalse(config.Get(UmbracoObjectTypes.Member, "").Enabled);
             Assert.IsTrue(config.Get(UmbracoObjectTypes.Document, "page").Enabled);
             Assert.IsFalse(config.Get(UmbracoObjectTypes.Document, "page").Get("invalidRelation").Enabled);
@@ -223,27 +223,27 @@ namespace Umbraco.RelationEditor.Tests
             Assert.AreEqual(UmbracoObjectTypes.Document, config.ObjectTypes[1].Name);
         }
 
-        private static void AssertBreadCrumbCaptionDeserialized(RelationEditorConfiguration config)
+        private static void AssertBreadcrumbCaptionDeserialized(RelationEditorConfiguration config)
         {
             AssertDeserialized(config);
 
-            Assert.AreEqual("->", config.BreadCrumbSeparator);
-            Assert.AreEqual(config.BreadCrumbMode,BreadCrumbMode.Caption);
+            Assert.AreEqual("->", config.BreadcrumbSeparator);
+            Assert.AreEqual(BreadcrumbMode.Caption, config.BreadcrumbMode);
         }
 
-        private static void AssertBreadCrumbToolTipDeserialized(RelationEditorConfiguration config)
+        private static void AssertBreadcrumbToolTipDeserialized(RelationEditorConfiguration config)
         {
             AssertDeserialized(config);
 
-            Assert.AreEqual("/", config.BreadCrumbSeparator);
-            Assert.AreEqual(config.BreadCrumbMode, BreadCrumbMode.ToolTip);
+            Assert.AreEqual("/", config.BreadcrumbSeparator);
+            Assert.AreEqual(BreadcrumbMode.ToolTip, config.BreadcrumbMode);
         }
 
         private static RelationEditorConfiguration CreateToolTipConfig()
         {
             var config = new RelationEditorConfiguration
             {
-                BreadCrumbSeparator = "/",
+                BreadcrumbSeparator = "/",
                 ObjectTypes = new List<ObjectTypeConfiguration>
                 {
                     new ObjectTypeConfiguration
@@ -280,15 +280,15 @@ namespace Umbraco.RelationEditor.Tests
             return config;
         }
 
-        private static RelationEditorConfiguration CreateBreadCrumbCaptionConfig()
+        private static RelationEditorConfiguration CreateBreadcrumbCaptionConfig()
         {
             var config = CreateToolTipConfig();
-            config.BreadCrumbMode = BreadCrumbMode.Caption;
-            config.BreadCrumbSeparator = "->";
+            config.BreadcrumbMode = BreadcrumbMode.Caption;
+            config.BreadcrumbSeparator = "->";
             return config;
         }
 
-        private static RelationEditorConfiguration DeserializeFromBreadCrumbToolTipInput()
+        private static RelationEditorConfiguration DeserializeFromBreadcrumbToolTipInput()
         {
             var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
             var reader = new StringReader(XmlToolTip);
@@ -296,7 +296,7 @@ namespace Umbraco.RelationEditor.Tests
             return config;
         }
 
-        private static RelationEditorConfiguration DeserializeFromBreadCrumbCaptionInput()
+        private static RelationEditorConfiguration DeserializeFromBreadcrumbCaptionInput()
         {
             var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
             var reader = new StringReader(XmlCaption);

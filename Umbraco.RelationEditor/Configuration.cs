@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using umbraco.controls;
 using Umbraco.Core.Logging;
 using Umbraco.Core.Models;
@@ -28,21 +29,13 @@ namespace Umbraco.RelationEditor
     [XmlRoot("RelationEditor")]
     public class RelationEditorConfiguration
     {
-        [XmlIgnore]
-        [JsonIgnore]
-        public BreadCrumbMode BreadCrumbMode;
-
-        [XmlAttribute("BreadCrumbMode")]
-        [JsonProperty("BreadCrumbMode", NullValueHandling = NullValueHandling.Ignore)]
-        public string StrBreadCrumbMode
-        {
-            get { return BreadCrumbMode.ToString(); }
-            set { BreadCrumbMode = Enum.IsDefined(typeof(BreadCrumbMode), value) ? (BreadCrumbMode)Enum.Parse(typeof(BreadCrumbMode), value) : BreadCrumbMode.ToolTip; }
-        }
+        [XmlAttribute]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public BreadcrumbMode BreadcrumbMode;
 
         [XmlAttribute]
-        [JsonProperty("BreadCrumbSeparator", NullValueHandling = NullValueHandling.Ignore)]
-        public string BreadCrumbSeparator { get; set; }
+        [JsonProperty("BreadcrumbSeparator", NullValueHandling = NullValueHandling.Ignore)]
+        public string BreadcrumbSeparator { get; set; }
         
         [XmlElement("ObjectType")]
         public List<ObjectTypeConfiguration> ObjectTypes { get; set; }
@@ -69,7 +62,7 @@ namespace Umbraco.RelationEditor
         public UmbracoObjectTypes Name { get; set; }
         
         [XmlElement("EnabledRelation")]
-        [JsonProperty(Order = 5)]
+        [JsonProperty(Order = 3)]
         public List<EnabledRelationConfiguration> EnabledRelations { get; set; }
 
         public EnabledRelationConfiguration Get(string alias)
@@ -115,6 +108,7 @@ namespace Umbraco.RelationEditor
 
     public class Configuration
     {
+        private static readonly object LockObj = new object();
         private static RelationEditorConfiguration configuration = null;
 
         private static IEnumerable<ObjectTypeConfiguration> ObjectTypes
@@ -130,7 +124,7 @@ namespace Umbraco.RelationEditor
             get
             {
                 EnsureConfiguration();
-                return configuration.ObjectTypes;
+                return configuration;
             }
         }
 
@@ -182,27 +176,30 @@ namespace Umbraco.RelationEditor
             lock (LockObj)
             {
                 if (configuration == null)
-            {
-                try
                 {
-                        var serializer = new XmlSerializer(typeof(RelationEditorConfiguration));
-                    using (var reader = new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
-                    { 
-                            configuration = (RelationEditorConfiguration)serializer.Deserialize(reader);
+                    try
+                    {
+                        var serializer = new XmlSerializer(typeof (RelationEditorConfiguration));
+                        using (
+                            var reader =
+                                new StreamReader(HttpContext.Current.Server.MapPath("~/config/RelationEditor.config")))
+                        {
+                            configuration = (RelationEditorConfiguration) serializer.Deserialize(reader);
+                        }
                     }
-                }
                     catch (Exception ex)
-                {
-                    LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
-                    configuration = new RelationEditorConfiguration();
+                    {
+                        LogHelper.Error<Configuration>("Could not read config/RelationEditor.config", ex);
+                        configuration = new RelationEditorConfiguration();
+                    }
                 }
             }
         }
+    }
 
-    public enum BreadCrumbMode
+    public enum BreadcrumbMode
     {
         ToolTip,
         Caption
     }
-}
 }
