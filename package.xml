@@ -12,6 +12,16 @@
       <orgName>editrelations.html</orgName>
     </file>
     <file>
+      <guid>enablerelations.html</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>enablerelations.html</orgName>
+    </file>
+    <file>
+      <guid>ng-tree-btn.html</guid>
+      <orgPath>/App_Plugins/RelationEditor</orgPath>
+      <orgName>ng-tree-btn.html</orgName>
+    </file>
+    <file>
       <guid>package.manifest</guid>
       <orgPath>/App_Plugins/RelationEditor</orgPath>
       <orgName>package.manifest</orgName>
@@ -35,7 +45,7 @@
   <info>
     <package>
       <name>Umbraco Relation Editor</name>
-      <version>1.0.5142</version>
+      <version>1.0.5550</version>
       <license url="http://opensource.org/licenses/MIT">MIT License</license>
       <url>http://lars-erik.github.io/umbraco-relation-editor/</url>
       <requirements>

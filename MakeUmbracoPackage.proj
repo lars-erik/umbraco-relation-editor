@@ -1,0 +1,48 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="CopyEverything">
+  <Import Project="$(MSBuildExtensionsPath)\ExtensionPack\4.0\MSBuild.ExtensionPack.tasks"/>
+
+  <PropertyGroup>
+    <PackageDir>UmbracoPackage\</PackageDir>
+    <SourceDir>Umbraco.RelationEditor.Web\</SourceDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Binary Include="$(SourceDir)bin\Umbraco.RelationEditor.dll"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(SourceDir)App_Plugins\RelationEditor\*.*"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Config Include="$(SourceDir)Config\RelationEditor.config"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageXml Include="package.xml"/>
+  </ItemGroup>
+
+  <Target Name="CopyEverything">
+    <RemoveDir Directories="$(PackageDir)"/>
+    <MakeDir Directories="$(PackageDir)"/>
+    <Copy SourceFiles="@(Binary)" DestinationFolder="$(PackageDir)"/>
+    <Copy SourceFiles="@(Content)" DestinationFolder="$(PackageDir)"/>
+    <Copy SourceFiles="@(Config)" DestinationFolder="$(PackageDir)"/>
+    <Copy SourceFiles="@(PackageXml)" DestinationFolder="$(PackageDir)"/>
+  </Target>
+
+  <Target Name="ZipIt" AfterTargets="CopyEverything">
+    <ItemGroup>
+      <PackageFiles Include="$(PackageDir)**\*.*"/>
+    </ItemGroup>
+    <Zip TaskAction="Create"
+         RemoveRoot="$(PackageDir)"
+         CompressFiles="@(PackageFiles)"
+         ZipFileName="Umbraco.RelationEditor.zip"
+         />
+  </Target>
+
+  <Target Name="RemoveBuild" AfterTargets="ZipIt">
+    <RemoveDir Directories="$(PackageDir)"/>
+  </Target>
+</Project>

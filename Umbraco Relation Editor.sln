@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.RelationEditor.Web", "Umbraco.RelationEditor.Web\Umbraco.RelationEditor.Web.csproj", "{ECF870ED-CFF0-4C65-90F6-1B85C5BC4A93}"
 EndProject
@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readmes", "Readmes", "{9F82
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packaging", "Packaging", "{E55B2F50-B0E5-49FC-9A18-3ED0C054D41E}"
 	ProjectSection(SolutionItems) = preProject
+		MakeUmbracoPackage.proj = MakeUmbracoPackage.proj
 		package.xml = package.xml
 	EndProjectSection
 EndProject
