@@ -262,7 +262,7 @@
                     $http.get(
                         root + "getrelations", {
                             params: {
-                                section: section,
+                                section: section || "",
                                 treeType: treeType || "",
                                 parentId: id
                             }

@@ -7,6 +7,7 @@ static internal class Mappings
 {
     public static readonly Dictionary<TreeNodeType, UmbracoObjectTypes> TreeNodeObjectTypes = new Dictionary<TreeNodeType, UmbracoObjectTypes>
     {
+        { new TreeNodeType(null, null), UmbracoObjectTypes.Document },
         { new TreeNodeType("content", null), UmbracoObjectTypes.Document },
         { new TreeNodeType("media", null), UmbracoObjectTypes.Media },
         { new TreeNodeType("settings", "nodeTypes"), UmbracoObjectTypes.DocumentType },
