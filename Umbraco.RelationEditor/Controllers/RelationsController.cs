@@ -83,7 +83,8 @@ namespace Umbraco.RelationEditor.Controllers
                         {
                             int otherId;
                             Guid relatedType;
-                            if (r.ParentId == parentId)
+                            var isParent = r.ParentId == parentId;
+                            if (isParent)
                             {
                                 otherId = r.ChildId;
                                 relatedType = rt.ChildObjectType;
@@ -98,7 +99,8 @@ namespace Umbraco.RelationEditor.Controllers
                             var fullPath = GetFullPath(relEntity);
                             return new RelationDto
                             {
-                                ChildId = otherId,
+                                Readonly = !isParent,
+                                ChildId = r.ChildId,
                                 FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
                                 ChildName = (configuration.BreadcrumbMode == BreadcrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
                                 State = RelationStateEnum.Unmodified
@@ -134,7 +136,7 @@ namespace Umbraco.RelationEditor.Controllers
 
                 foreach (var relation in set.Relations)
                 {
-                    if (relation.State == RelationStateEnum.Deleted)
+                    if (relation.State == RelationStateEnum.Deleted || relation.Readonly)
                         continue;
 
                     var childEntity = entityService.Get(relation.ChildId, UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
@@ -234,6 +236,7 @@ namespace Umbraco.RelationEditor.Controllers
         public string FullPath { get; set; }
         public RelationStateEnum State { get; set; }
         public bool Deleted { get; set; }
+        public bool Readonly { get; set; }
 
         public RelationDto()
         {

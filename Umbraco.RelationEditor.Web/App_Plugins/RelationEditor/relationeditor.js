@@ -104,6 +104,13 @@
 
         var promise = relationsResources.getById($scope.currentNode.section, $scope.currentNode.nodeType, $scope.currentNode.id);
         promise.then(function (data) {
+            $(data).each(function (i, type) {
+                $(type.Sets).each(function (i2, set) {
+                    $(set.Relations).each(function(i3, relation) {
+                        relation.RemoveTitle = relation.Readonly ? "Must be removed from " + relation.ChildName : "Remove relation";
+                    });
+                });
+            });
             $scope.data = data;
             $scope.resourceSets = data.Sets;
             $scope.ready = true;
