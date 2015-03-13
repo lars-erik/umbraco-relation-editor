@@ -15,7 +15,7 @@ namespace Umbraco.RelationEditor.Controllers
 {
     [UmbracoApplicationAuthorize("content")]
     [PluginController("RelationsEditor")]
-    public class RelationsController : UmbracoApiController
+    public class RelationsController : UmbracoAuthorizedApiController
     {
         private readonly RelationEditorConfiguration configuration = RelationEditor.Configuration.Instance;
         private readonly IRelationService relationService;
