@@ -9,6 +9,7 @@ static internal class Mappings
     {
         { new TreeNodeType(null, null), UmbracoObjectTypes.Document },
         { new TreeNodeType("content", null), UmbracoObjectTypes.Document },
+        { new TreeNodeType("content", "content"), UmbracoObjectTypes.Document }, // Fix for Umbraco 7.3.x
         { new TreeNodeType("media", null), UmbracoObjectTypes.Media },
         { new TreeNodeType("settings", "nodeTypes"), UmbracoObjectTypes.DocumentType },
         { new TreeNodeType("settings", "mediaTypes"), UmbracoObjectTypes.MediaType }
