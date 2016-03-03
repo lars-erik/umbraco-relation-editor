@@ -20,7 +20,11 @@ namespace Umbraco.RelationEditor.Controllers
 
         public object GetConfiguration(string type, int id)
         {
-            var objectType = Mappings.TreeNodeObjectTypes[new TreeNodeType("settings", type)];
+            var legacyTreeNodeType = new TreeNodeType("settings", type);
+            var sevenThreeTreeNodeType = new TreeNodeType(type, null);
+            var objectType = Mappings.TreeNodeObjectTypes.ContainsKey(legacyTreeNodeType) ?
+                Mappings.TreeNodeObjectTypes[legacyTreeNodeType] :
+                Mappings.TreeNodeObjectTypes[sevenThreeTreeNodeType];
             var contentTypes = ContentTypeService.GetAllContentTypes().ToList();
             var mediaTypes = ApplicationContext.Services.ContentTypeService.GetAllMediaTypes().ToList();
 
@@ -51,7 +55,12 @@ namespace Umbraco.RelationEditor.Controllers
 
         public void SaveConfiguration(SaveConfigurationCommand saveConfigurationCommand)
         {
-            var objectType = Mappings.TreeNodeObjectTypes[new TreeNodeType("settings", saveConfigurationCommand.Type)];
+            var legacyTreeNodeType = new TreeNodeType("settings", saveConfigurationCommand.Type);
+            var sevenThreeTreeNodeType = new TreeNodeType(saveConfigurationCommand.Type, null);
+            var objectType = Mappings.TreeNodeObjectTypes.ContainsKey(legacyTreeNodeType) ?
+                Mappings.TreeNodeObjectTypes[legacyTreeNodeType] :
+                Mappings.TreeNodeObjectTypes[sevenThreeTreeNodeType];
+            var contentTypes = ContentTypeService.GetAllContentTypes().ToList();
             var mappedObjectType = objectType == UmbracoObjectTypes.DocumentType ? 
                 UmbracoObjectTypes.Document : 
                 UmbracoObjectTypes.Media;

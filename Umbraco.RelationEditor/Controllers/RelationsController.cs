@@ -46,10 +46,13 @@ namespace Umbraco.RelationEditor.Controllers
             )
         {
             var treeNodeType = new TreeNodeType(section, treeType);
+            var fromContentTreeNodeType = new TreeNodeType(null, treeType);
             var fromType = UmbracoObjectTypes.Unknown;
 
-            if (
-                !Mappings.TreeNodeObjectTypes.TryGetValue(treeNodeType, out fromType)
+            if ((
+                    !Mappings.TreeNodeObjectTypes.TryGetValue(treeNodeType, out fromType) &&
+                    !Mappings.TreeNodeObjectTypes.TryGetValue(fromContentTreeNodeType, out fromType)
+                )
                 || fromType == UmbracoObjectTypes.Unknown
             )
                 throw new Exception("Cannot get relation types for unknown object type");

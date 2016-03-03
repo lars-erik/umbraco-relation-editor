@@ -139,7 +139,7 @@
 
         function hierarchize(types, configuredType, parentId) {
             return $.map(
-                $.grep(types, function(t) { return t.ParentId == parentId; }),
+                $.grep(types, function(t) { return t.ParentId === parentId || $.grep(types, function(t) { return t.Id === parentId; }).length === 0; }),
                 function (t) {
                     return {
                         id: t.Id,
@@ -221,6 +221,8 @@
         promise = relationsResources.configuration(type, id);
         promise.then(function(data) {
             scope.data = data;
+
+
 
             angular.forEach(data.relationTypes, function(rt) {
 
