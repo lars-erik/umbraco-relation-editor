@@ -1,5 +1,25 @@
 ﻿{
-    javascript: [
+    "javascript": [
         "~/App_Plugins/RelationEditor/relationeditor.js"
+    ],
+    "propertyEditors": [
+        {
+            "alias": "relationeditor.single.type",
+            "name": "Relations (Single type)",
+            // icon
+            "editor": {
+                "view": "~/App_Plugins/RelationEditor/relationeditor-single-type.html",
+                "valueType": "JSON"
+            },
+            "prevalues": {
+                "fields": [
+                    {
+                        "key": "relationType",
+                        "label": "Relation Type",
+                        "view": "textstring"
+                    }
+                ]
+            }
+        }
     ]
 }

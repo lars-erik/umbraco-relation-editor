@@ -26,11 +26,21 @@ namespace Umbraco.RelationEditor.Controllers
 
         public RelationsController()
         {
-            relationService = ApplicationContext.Services.RelationService;
+            relationService = RelationService;
             contentService = ApplicationContext.Services.ContentService;
             mediaService = ApplicationContext.Services.MediaService;
             contentTypeService = ApplicationContext.Services.ContentTypeService;
             entityService = ApplicationContext.Services.EntityService;
+        }
+
+        private static IRelationService RelationService
+        {
+            get { return UmbracoContext.Current.Application.Services.RelationService; }
+        }
+
+        private static IEntityService EntityService
+        {
+            get { return UmbracoContext.Current.Application.Services.EntityService; }
         }
 
         public string[] GetObjectTypes()
@@ -102,7 +112,7 @@ namespace Umbraco.RelationEditor.Controllers
                             var fullPath = GetFullPath(relEntity);
                             return new RelationDto
                             {
-                                Readonly = !isParent,
+                                Inverted = !isParent,
                                 ChildId = r.ChildId,
                                 FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
                                 ChildName = (configuration.BreadcrumbMode == BreadcrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
@@ -131,20 +141,39 @@ namespace Umbraco.RelationEditor.Controllers
             
             foreach (var set in contentRelations.Sets)
             {
-                var typeId = set.RelationTypeId;
-                var type = relationService.GetRelationTypeById(set.RelationTypeId);
-                var setRelations = relations.Where(r => r.RelationTypeId == typeId);
-                foreach (var removeRelation in setRelations)
-                    relationService.Delete(removeRelation);
+                UpdateRelationSet(set, relations, parentEntity);
+            }
+        }
 
-                foreach (var relation in set.Relations)
+        public static void UpdateRelationSet(RelationSetDto set, List<IRelation> relations, IUmbracoEntity parentEntity)
+        {
+            var type = RelationService.GetRelationTypeByAlias(set.Alias);
+            var typeId = type.Id;
+            var setRelations = relations.Where(r => r.RelationTypeId == typeId);
+            foreach (var removeRelation in setRelations)
+                RelationService.Delete(removeRelation);
+
+            foreach (var relation in set.Relations)
+            {
+                if (relation.State == RelationStateEnum.Deleted)
+                    continue;
+
+                var relationParent = parentEntity;
+                IUmbracoEntity relationChild;
+
+                if (relation.Inverted)
                 {
-                    if (relation.State == RelationStateEnum.Deleted || relation.Readonly)
-                        continue;
-
-                    var childEntity = entityService.Get(relation.ChildId, UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
-                    relationService.Relate(parentEntity, childEntity, type);
+                    relationParent = EntityService.Get(relation.ChildId,
+                        UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
+                    relationChild = parentEntity;
                 }
+                else
+                {
+                    relationChild = EntityService.Get(relation.ChildId,
+                        UmbracoObjectTypesExtensions.GetUmbracoObjectType(type.ChildObjectType));
+                }
+
+                RelationService.Relate(relationParent, relationChild, type);
             }
         }
 
@@ -239,7 +268,7 @@ namespace Umbraco.RelationEditor.Controllers
         public string FullPath { get; set; }
         public RelationStateEnum State { get; set; }
         public bool Deleted { get; set; }
-        public bool Readonly { get; set; }
+        public bool Inverted { get; set; }
 
         public RelationDto()
         {

@@ -296,6 +296,7 @@
     <Content Include="App_Plugins\ModelsBuilder\modelsbuilder.resource.js" />
     <Content Include="App_Plugins\RelationEditor\enablerelations.html" />
     <Content Include="App_Plugins\RelationEditor\ng-tree-btn.html" />
+    <Content Include="App_Plugins\RelationEditor\relationeditor-single-type.html" />
     <Content Include="App_Plugins\RelationEditor\relationeditor.css" />
     <Content Include="config\grid.editors.config.js" />
     <Content Include="config\Lang\cs-CZ.user.xml" />
@@ -322,7 +323,7 @@
     <Content Include="macroScripts\Web.config" />
     <Content Include="config\ClientDependency.config" />
     <Content Include="Views\Page.cshtml" />
-    <Content Include="App_Plugins\RelationEditor\Package.manifest" />
+    <Content Include="App_Plugins\RelationEditor\package.manifest" />
     <Content Include="App_Plugins\RelationEditor\editrelations.html" />
     <Content Include="config\RelationEditor.config" />
     <Content Include="config\relationeditor.sample.config" />

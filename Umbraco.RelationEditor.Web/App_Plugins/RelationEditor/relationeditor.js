@@ -104,13 +104,13 @@
 
         var promise = relationsResources.getById($scope.currentNode.section, $scope.currentNode.nodeType, $scope.currentNode.id);
         promise.then(function (data) {
-            $(data).each(function (i, type) {
-                $(type.Sets).each(function (i2, set) {
-                    $(set.Relations).each(function(i3, relation) {
-                        relation.RemoveTitle = relation.Readonly ? "Must be removed from " + relation.ChildName : "Remove relation";
-                    });
-                });
-            });
+            //$(data).each(function (i, type) {
+            //    $(type.Sets).each(function (i2, set) {
+            //        $(set.Relations).each(function(i3, relation) {
+            //            relation.RemoveTitle = relation.Readonly ? "Must be removed from " + relation.ChildName : "Remove relation";
+            //        });
+            //    });
+            //});
             $scope.data = data;
             $scope.resourceSets = data.Sets;
             $scope.ready = true;
@@ -255,6 +255,22 @@
         });
     }
 
+    function PropertyEditorController(scope, searchService) {
+        scope.search = "";
+        scope.results = [];
+
+        //scope.$watch("search", function() {
+        //    if (scope.search) {
+        //        searchService.search(scope.search)
+        //            .then(function(results) {
+        //                scope.results = results;
+        //            }, function(error) {
+        //                // swallow
+        //            });
+        //    }
+        //});
+    }
+
     function RelationsResources($q, $http, umbDataFormatter, umbRequestHelper) {
         var root = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/backoffice/relationseditor/relations/",
             enableRoot = Umbraco.Sys.ServerVariables.umbracoSettings.umbracoPath + "/backoffice/relationseditor/settings/";
@@ -315,8 +331,55 @@
         };
     }
 
+    function createSearchService(umbRequestHelper, http) {
+        return {
+            "search": function(luceneQuery) {
+                return http.get(umbRequestHelper.getApiUrl("examineMgmtBaseUrl", "GetSearchResults", {
+                    searcherName: "ExternalSearcher",
+                    query: encodeURIComponent(luceneQuery),
+                    queryType: "lucene"
+                }))
+                .then(function(response) {
+                    return response.data;
+                });
+            }
+        }
+    }
+
+    function createTypeaheadDirective(searchService) {
+        return {
+            require: ["ngModel"],
+            link: function(scope, element, attrs, ctrls) {
+                var popup = $("<div style=\"display:none;\"/>"),
+                    mdl = ctrls[0],
+                    orig = mdl.$setViewValue,
+                    prevValue = null;
+
+                $(element).after(popup);
+
+                mdl.$setViewValue = function (value) {
+                    if (value && value.length > 2 && value !== prevValue) {
+                        prevValue = value;
+                        searchService.search(value)
+                            .then(function (results) {
+                                scope.results = results;
+                                popup.show();
+                                popup.html("<pre>" + JSON.stringify(results, null, "\t") + "</pre>");
+                            });
+                    }
+
+                    if (orig) {
+                        orig.apply(mdl, [value]);
+                    }
+                }
+            }
+        }
+    }
+
     angular.module("umbraco")
         .factory("RelationEditor.RelationResources", ["$q", "$http", "umbDataFormatter", "umbRequestHelper", RelationsResources])
+        .factory("RelationEditor.SearchService", ["umbRequestHelper", "$http", createSearchService])
+        .directive("relationsTypeahead", ["RelationEditor.SearchService", createTypeaheadDirective])
         .controller("RelationEditor.EditRelationsController", [
             "$scope",
             "dialogService",
@@ -331,6 +394,11 @@
             "assetsService",
             "navigationService",
             EnableRelationsController
+        ])
+        .controller("RelationEditor.PropertyEditor.Controller", [
+            "$scope",
+            "RelationEditor.SearchService",
+            PropertyEditorController
         ]);
 
     /*
