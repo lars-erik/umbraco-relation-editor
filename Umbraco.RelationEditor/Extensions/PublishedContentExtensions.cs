@@ -52,6 +52,12 @@ namespace Umbraco.RelationEditor.Extensions
             return Umbraco.TypedContent(
                 relations
                     .Where(r => r.RelationType.Alias.InvariantEquals(relationAlias))
+                    .OrderBy(r =>
+                    {
+                        int value;
+                        int.TryParse(r.Comment, out value);
+                        return value;
+                    })
                     .Select(selector)
                 )
                 .OfType<T>();

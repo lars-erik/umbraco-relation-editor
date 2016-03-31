@@ -75,8 +75,11 @@ namespace Umbraco.RelationEditor
                 var id = Convert.ToInt32(eventArgs.NodeId);
                 var alias = EntityHelper.FindAlias(type, id);
 
-                AddEditRelations(eventArgs, type, alias, urlHelper);
-                AddEnableRelations(eventArgs, objectType, urlHelper);
+                if (alias != null)
+                { 
+                    AddEditRelations(eventArgs, type, alias, urlHelper);
+                    AddEnableRelations(eventArgs, objectType, urlHelper);
+                }
             }
         }
 

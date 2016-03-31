@@ -113,12 +113,20 @@ namespace Umbraco.RelationEditor.Controllers
                             return new RelationDto
                             {
                                 Inverted = !isParent,
-                                ChildId = r.ChildId,
+                                ChildId = otherId,
                                 FullPath = HttpContext.Current.Server.HtmlEncode(fullPath),
                                 ChildName = (configuration.BreadcrumbMode == BreadcrumbMode.ToolTip) ? otherName : HttpContext.Current.Server.HtmlDecode(fullPath),
-                                State = RelationStateEnum.Unmodified
+                                State = RelationStateEnum.Unmodified,
+                                Comment = r.Comment
                             };
                         }).ToList()
+                        .OrderBy(r =>
+                        {
+                            int value;
+                            int.TryParse(r.Comment, out value);
+                            return value;
+                        })
+                        .ToList()
                 }).ToList();
 
             return new ContentRelationsDto
@@ -269,6 +277,7 @@ namespace Umbraco.RelationEditor.Controllers
         public RelationStateEnum State { get; set; }
         public bool Deleted { get; set; }
         public bool Inverted { get; set; }
+        public string Comment { get; set; }
 
         public RelationDto()
         {
