@@ -1,5 +1,4 @@
-﻿@model dynamic
-@using Umbraco.Web.Templates
+@inherits Umbraco.Web.Mvc.UmbracoViewPage<dynamic>
 
 @if (Model.value != null)
 {   
@@ -14,10 +13,10 @@
         }
     }
     
-    <img src="@url" alt="@Model.value.caption">
+    <img class="round center" src="@url" alt="@Model.value.caption">
     
     if (Model.value.caption != null)
     {
-        <p class="caption">@Model.value.caption</p>
+        <strong>@Model.value.caption</strong>
     }
 }

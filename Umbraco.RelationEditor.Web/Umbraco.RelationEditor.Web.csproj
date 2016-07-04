@@ -361,7 +361,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Plugins\RelationEditor\relationeditor.js" />
-    <Content Include="bin\amd64\Microsoft.VC90.CRT\msvcr90.dll" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
