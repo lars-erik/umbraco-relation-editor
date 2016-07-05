@@ -1,5 +1,20 @@
 ##Umbraco 7 Relation Editor
 
+<code style="
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    background-color: #202020;
+    border: 4px solid silver;
+    border-radius: 5px;
+    box-shadow: 2px 2px 3px #6e6e6e;
+    color: #e2e2e2;
+    display: block;
+    font: 1.5em 'andale mono','lucida console',monospace;
+    line-height: 1.5em;
+    overflow: auto;
+    padding: 15px;
+">PM > install-package Umbraco.RelationEditor</code>
+
 [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/xU3ifl_6xtk/0.jpg)](http://www.youtube.com/watch?v=xU3ifl_6xtk)
 
 The editor will appear for supported objects after they're configured.
