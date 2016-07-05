@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.RelationEditor.Web", "Umbraco.RelationEditor.Web\Umbraco.RelationEditor.Web.csproj", "{ECF870ED-CFF0-4C65-90F6-1B85C5BC4A93}"
 EndProject
@@ -11,6 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.RelationEditor.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readmes", "Readmes", "{9F826BBD-9271-459B-A5E1-D2B810350914}"
 	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
 		readme.txt = readme.txt
 	EndProjectSection
 EndProject
