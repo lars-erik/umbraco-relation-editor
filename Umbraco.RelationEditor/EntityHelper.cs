@@ -1,17 +1,20 @@
 using Umbraco.Core.Models;
 using Umbraco.Web;
 
-static internal class EntityHelper
+namespace Umbraco.RelationEditor
 {
-    public static string FindAlias(UmbracoObjectTypes objectType, int id)
+    internal static class EntityHelper
     {
-        var item = UmbracoContext.Current.Application.Services.EntityService.Get(id, objectType);
-        if (item != null){
-            object alias = null;
-            item.AdditionalData.TryGetValue("Alias", out alias);
-            return alias as string;
-        } else {
-            return null;
+        public static string FindAlias(UmbracoObjectTypes objectType, int id)
+        {
+            var item = UmbracoContext.Current.Application.Services.EntityService.Get(id, objectType);
+            if (item != null && item.AdditionalData != null){
+                object alias = null;
+                item.AdditionalData.TryGetValue("Alias", out alias);
+                return alias as string;
+            } else {
+                return null;
+            }
         }
     }
 }
