@@ -6,8 +6,12 @@ static internal class EntityHelper
     public static string FindAlias(UmbracoObjectTypes objectType, int id)
     {
         var item = UmbracoContext.Current.Application.Services.EntityService.Get(id, objectType);
-        object alias = null;
-        item.AdditionalData.TryGetValue("Alias", out alias);
-        return alias as string;
+        if (item != null){
+            object alias = null;
+            item.AdditionalData.TryGetValue("Alias", out alias);
+            return alias as string;
+        } else {
+            return null;
+        }
     }
 }

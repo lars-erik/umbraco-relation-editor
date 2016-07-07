@@ -52,7 +52,7 @@ namespace Umbraco.RelationEditor
                 {
                     var id = Convert.ToInt32(node.Id);
                     var alias = EntityHelper.FindAlias(childObjectType, id);
-                    if (!childTypes.Contains(alias, IgnoreCase))
+                    if (!alias.IsNullOrWhiteSpace() && !childTypes.Contains(alias, IgnoreCase))
                     {
                         node.SetNotPublishedStyle();
                         node.AdditionalData.Add("relationDisallowed", "true");

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Controllers;
+using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Models.EntityBase;
 using Umbraco.Core.Services;
@@ -161,6 +162,10 @@ namespace Umbraco.RelationEditor.Controllers
             {
                 var objectType = Mappings.TreeNodeObjectTypes[treeNodeType];
                 var alias = EntityHelper.FindAlias(objectType, id);
+                if (alias.IsNullOrWhiteSpace())
+                {
+                    return new IsAllowedResult(false);
+                }
                 return new IsAllowedResult(relConfig.Get(alias).Enabled);
             }
             return new IsAllowedResult(false);
