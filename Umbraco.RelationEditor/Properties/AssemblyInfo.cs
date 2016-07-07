@@ -34,3 +34,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.2.*")]
 [assembly: AssemblyInformationalVersion("1.2.0")]
+
+[assembly: InternalsVisibleTo("Umbraco.RelationEditor.Tests")]
