@@ -7,10 +7,11 @@
     <authors>Lars-Erik Aabech</authors>
     <owners>Lars-Erik Aabech</owners>
     <projectUrl>http://lars-erik.github.io/umbraco-relation-editor</projectUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes/>
-    <copyright>Copyright 2014 Lars-Erik Aabech / MarkedsPartner AS</copyright>
+    <copyright>Copyright 2014-2016 Lars-Erik Aabech</copyright>
     <tags>umbraco relations</tags>
   </metadata>
   <files>

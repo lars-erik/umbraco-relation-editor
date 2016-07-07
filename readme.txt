@@ -1,6 +1,6 @@
 Umbraco 7 Relation Editor
 
-The editor will appear for supported objects after they're configured in /config/relationeditor.config.
+The editor will appear for supported objects after they're configured.
 
 Supported ObjectTypes are
 * Document
@@ -18,39 +18,17 @@ Supported relation types are
 * MediaType -> DocumentType
 * MediaType -> MediaType
 
-Document and Media need a specified Alias to be enabled.
-Alias is the alias of the respective type.
-IE. <ObjectType Name="Document" Alias="myDocumentTypeAlias">
+To enable relations on an object type, right click its definition and select "Enable Relations".
+For Document- and Media types, you can select which kinds types to enable the relation for.
+You can for instance configure a relation to just accept one type of document type.
+Once a relation type is enabled for an object type, you can right click individual objects and relate them.
+Enabling a relation on a document type for example enables the "Edit Relations" action in its context menu.
 
-Types does not need, nor should have alias.
-IE. <ObjectType Name="DocumentType"/>
+There are extensions for IPublishedContent that can fetch related content.  
+These can be found in the `Umbraco.RelationEditor.Extensions` namespace.  
+Example usage:
 
-Relations to be displayed has to be enabled by adding EnabledRelation elements.
-IE. <EnabledRelation Alias="myRelationType"/>
+var relatedBlogposts = Model.Content.Related<IPublishedContent>("relatedBlogposts");
+var relatedTextPages = Model.Content.RelatedParents<TextPage>("relatedTextpages");
+var relatedFiles = Model.Content.RelatedChildren<File>("relatedFiles");
 
-For documents and media, you can limit which types of related items to support.
-IE. <EnabledChildType Alias="otherDocumentTypeAlias"/>
-
-If no enabled child types are enabled, all types will be selectable.
-
-Note: Names and aliases are case sensitive.
-
-Here's a sample configuration:
-<RelationEditor>
-  <ObjectType Name="Document" Alias="page">
-    <EnabledRelation Alias="documentRelation">
-      <EnabledChildType Alias="post"/>
-    </EnabledRelation>
-    <EnabledRelation Alias="docMediaRel">
-      <EnabledChildType Alias="Image"/>
-    </EnabledRelation>
-  </ObjectType>
-  <ObjectType Name="Document" Alias="post">
-    <EnabledRelation Alias="documentRelation">
-      <EnabledChildType Alias="page"/>
-    </EnabledRelation>
-  </ObjectType>
-  <ObjectType Name="DocumentType">
-    <EnabledRelation Alias="typeToType"/>
-  </ObjectType>
-</RelationEditor>
