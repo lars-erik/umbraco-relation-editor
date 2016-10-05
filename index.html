@@ -30,67 +30,9 @@
       <section id="main_content">
         <p>Umbraco 7 Relation Editor</p>
 
-<p>The editor will appear for supported objects after they're configured in /config/relationeditor.config.</p>
-
-<p>Supported ObjectTypes are</p>
-
-<ul>
-<li>Document</li>
-<li>Media</li>
-<li>DocumentType</li>
-<li>MediaType</li>
-</ul><p>Supported relation types are</p>
-
-<ul>
-<li>Document -&gt; Document</li>
-<li>Document -&gt; Media</li>
-<li>Media -&gt; Document</li>
-<li>Media -&gt; Media</li>
-<li>DocumentType -&gt; DocumentType</li>
-<li>DocumentType -&gt; MediaType</li>
-<li>MediaType -&gt; DocumentType</li>
-<li>MediaType -&gt; MediaType</li>
-</ul><p>Document and Media need a specified Alias to be enabled.
-Alias is the alias of the respective type.
-IE. &lt;ObjectType Name="Document" Alias="myDocumentTypeAlias"&gt;</p>
-
-<p>Types does not need, nor should have alias.
-IE. &lt;ObjectType Name="DocumentType"/&gt;</p>
-
-<p>Relations to be displayed has to be enabled by adding EnabledRelation elements.
-IE. &lt;EnabledRelation Alias="myRelationType"/&gt;</p>
-
-<p>For documents and media, you can limit which types of related items to support.
-IE. &lt;EnabledChildType Alias="otherDocumentTypeAlias"/&gt;</p>
-
-<p>If no enabled child types are enabled, all types will be selectable.</p>
-
-<p>Note: Names and aliases are case sensitive.</p>
-
-<p>Here's a sample configuration:</p>
-
-<pre>
-&lt;RelationEditor&gt;
-    &lt;ObjectType Name="Document" Alias="page"&gt;
-        &lt;EnabledRelation Alias="documentRelation"&gt;
-            &lt;EnabledChildType Alias="post"/&gt;
-        &lt;/EnabledRelation&gt;
-        &lt;EnabledRelation Alias="docMediaRel"&gt;
-            &lt;EnabledChildType Alias="Image"/&gt;
-        &lt;/EnabledRelation&gt;
-    &lt;/ObjectType&gt;
-    &lt;ObjectType Name="Document" Alias="post"&gt;
-        &lt;EnabledRelation Alias="documentRelation"&gt;
-            &lt;EnabledChildType Alias="page"/&gt;
-        &lt;/EnabledRelation&gt;
-    &lt;/ObjectType&gt;
-    &lt;ObjectType Name="DocumentType"&gt;
-        &lt;EnabledRelation Alias="typeToType"/&gt;
-    &lt;/ObjectType&gt;
-&lt;/RelationEditor&gt;
-</pre>
-      </section>
-    </div>
+        <p>Instructions for use are on my blog. Will update here suddenly.</p>
+        <p><a href="http://blog.aabech.no/archive/relation-editor-120-released/">Instructions and video</a></p>
+        
 
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
