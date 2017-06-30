@@ -9,6 +9,7 @@ using Umbraco.Core.Models;
 using Umbraco.Web;
 using Umbraco.Web.Models.Trees;
 using Umbraco.Web.Trees;
+using MenuItem = Umbraco.Web.Models.Trees.MenuItem;
 
 namespace Umbraco.RelationEditor
 {
@@ -84,8 +85,9 @@ namespace Umbraco.RelationEditor
         {
             if (objectType == UmbracoObjectTypes.DocumentType || objectType == UmbracoObjectTypes.MediaType)
             {
-                var menuItem = eventArgs.Menu.Items.Add<EnableRelationsAction>("Enable relations");
+                var menuItem = new MenuItem("enableRelations", "Enable relations");
                 menuItem.LaunchDialogView(urlHelper.Content("~/App_Plugins/RelationEditor/enablerelations.html"), "Enable relations");
+                eventArgs.Menu.Items.Add(menuItem);
             }
         }
 
@@ -94,12 +96,8 @@ namespace Umbraco.RelationEditor
             var typeConfig = Configuration.Get(type, alias);
             if (!typeConfig.Enabled || !typeConfig.EnabledRelations.Any())
                 return;
-
-            var menuItem = eventArgs.Menu.Items.Add<EditRelationsAction>("Edit relations");
-            menuItem.LaunchDialogView(
-                urlHelper.Content("~/App_Plugins/RelationEditor/editrelations.html"),
-                "Edit relations"
-                );
+            var menuItem = new MenuItem("editRelations", "Edit relations");
+            menuItem.LaunchDialogView(urlHelper.Content("~/App_Plugins/RelationEditor/editrelations.html"), "Edit relations");
         }
     }
 }
