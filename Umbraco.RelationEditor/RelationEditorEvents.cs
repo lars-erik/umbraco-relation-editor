@@ -98,6 +98,7 @@ namespace Umbraco.RelationEditor
                 return;
             var menuItem = new MenuItem("editRelations", "Edit relations");
             menuItem.LaunchDialogView(urlHelper.Content("~/App_Plugins/RelationEditor/editrelations.html"), "Edit relations");
+            eventArgs.Menu.Items.Add(menuItem);
         }
     }
 }

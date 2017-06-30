@@ -9,6 +9,14 @@ using Umbraco.Web.WebApi;
 
 namespace Umbraco.RelationEditor.Controllers
 {
+    public class RelationsConfiguration
+    {
+        public List<IContentType> contentTypes { get; set; }
+        public List<IMediaType> mediaTypes { get; set; }
+        public IEnumerable<IRelationType> relationTypes { get; set; }
+        public ObjectTypeConfiguration configuration { get; set; }
+    }
+
     [UmbracoApplicationAuthorize("content")]
     [PluginController("RelationsEditor")]
     public class SettingsController : UmbracoAuthorizedApiController
@@ -18,7 +26,7 @@ namespace Umbraco.RelationEditor.Controllers
             get { return ApplicationContext.Services.ContentTypeService; }
         }
 
-        public object GetConfiguration(string type, int id)
+        public RelationsConfiguration GetConfiguration(string type, int id)
         {
             var legacyTreeNodeType = new TreeNodeType("settings", type);
             var sevenThreeTreeNodeType = new TreeNodeType(type, null);
@@ -44,13 +52,7 @@ namespace Umbraco.RelationEditor.Controllers
                 ? UmbracoObjectTypes.Document
                 : UmbracoObjectTypes.Media;
 
-            return new
-            {
-                contentTypes,
-                mediaTypes,
-                relationTypes,
-                configuration = RelationEditor.Configuration.Get(contentObjectType, contentType.Alias)
-            };
+            return new RelationsConfiguration {contentTypes = contentTypes, mediaTypes = mediaTypes, relationTypes = relationTypes, configuration = RelationEditor.Configuration.Get(contentObjectType, contentType.Alias)};
         }
 
         public void SaveConfiguration(SaveConfigurationCommand saveConfigurationCommand)
