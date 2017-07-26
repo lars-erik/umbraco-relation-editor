@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("MarkedsPartner AS / Lars-Erik Aabech")]
 [assembly: AssemblyProduct("Umbraco.RelationEditor")]
-[assembly: AssemblyCopyright("Copyright © 2014-215")]
+[assembly: AssemblyCopyright("Copyright © 2014-2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,6 +33,6 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.2.*")]
-[assembly: AssemblyInformationalVersion("1.2.2")]
+[assembly: AssemblyInformationalVersion("1.2.3")]
 
 [assembly: InternalsVisibleTo("Umbraco.RelationEditor.Tests")]
