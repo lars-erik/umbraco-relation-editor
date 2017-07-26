@@ -72,7 +72,8 @@
                     relationEditor: true,
                     parentType: $scope.data.ParentType,
                     parentTypeAlias: $scope.data.ParentAlias,
-                    relationAlias: $scope.resourceSets[index].Alias
+                    relationAlias: $scope.resourceSets[index].Alias,
+                    onlyInitialized: false
                 }),
                 treeAlias: $scope.resourceSets[index].ChildType.TreeType,
                 section: $scope.resourceSets[index].ChildType.Section,
