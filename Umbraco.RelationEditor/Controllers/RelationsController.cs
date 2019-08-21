@@ -8,6 +8,7 @@ using Umbraco.Core;
 using Umbraco.Core.Models;
 using Umbraco.Core.Models.EntityBase;
 using Umbraco.Core.Services;
+using Umbraco.RelationEditor.Extensions;
 using Umbraco.Web;
 using Umbraco.Web.Mvc;
 using Umbraco.Web.WebApi;
@@ -82,7 +83,7 @@ namespace Umbraco.RelationEditor.Controllers
                         .Where(r => 
                             r.RelationTypeId == rt.Id &&
                             (rt.IsBidirectional || r.ParentId == parentId)
-                        )
+                        ).OrderBy(d=>d.Order())
                         .Select(r =>
                         {
                             int otherId;

@@ -204,6 +204,7 @@
     <None Include="EditRelationsAction.cs" />
     <Compile Include="EntityHelper.cs" />
     <Compile Include="Extensions\PublishedContentExtensions.cs" />
+    <Compile Include="Extensions\RelationExtensions.cs" />
     <Compile Include="Mappings.cs" />
     <Compile Include="Controllers\RelationsController.cs" />
     <Compile Include="RelationEditorEvents.cs" />
